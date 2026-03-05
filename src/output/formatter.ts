@@ -38,7 +38,7 @@ export function printWarning(message: string): void {
 }
 
 export function printTimeSeries(
-  data: Array<{ timestamp: string; value: number }>,
+  data: Array<{ time: string; value: number }>,
   label: string,
 ): void {
   if (data.length === 0) {
@@ -47,8 +47,8 @@ export function printTimeSeries(
   }
 
   console.log(chalk.bold(label));
-  const columns: ColumnDef<{ timestamp: string; value: number }>[] = [
-    { header: 'Timestamp', key: 'timestamp' },
+  const columns: ColumnDef<{ time: string; value: number }>[] = [
+    { header: 'Time', key: 'time' },
     { header: 'Value', get: (item) => item.value.toString() },
   ];
   console.log(renderTable(data, columns));

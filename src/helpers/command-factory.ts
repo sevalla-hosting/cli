@@ -425,7 +425,7 @@ export interface MetricsCommandConfig {
     client: ApiClient,
     id: string,
     query: MetricsQuery,
-  ) => Promise<Array<{ timestamp: string; value: number }>>;
+  ) => Promise<Array<{ time: string; value: number }>>;
   parentIds?: string[];
 }
 
