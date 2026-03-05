@@ -449,10 +449,12 @@ export function makeMetricsCommand(config: MetricsCommandConfig): Command {
       validateId(ids[i] as string, args[i] as string);
     }
 
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const query: MetricsQuery = {
-      from: opts['from'] as string | undefined,
-      to: opts['to'] as string | undefined,
-      interval: opts['interval'] as string | undefined,
+      from: (opts['from'] as string | undefined) ?? dayAgo.toISOString(),
+      to: (opts['to'] as string | undefined) ?? now.toISOString(),
+      interval_in_seconds: (opts['interval'] as string | undefined) ?? '3600',
     };
     try {
       if (!json) startSpinner('Fetching metrics...');

@@ -18,7 +18,7 @@ export interface PaginatedResponse<T> {
 export interface MetricsQuery extends QueryParams {
   from?: string;
   to?: string;
-  interval?: string;
+  interval_in_seconds?: string;
 }
 
 export interface ApiErrorBody {

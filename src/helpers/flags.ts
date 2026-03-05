@@ -17,9 +17,9 @@ export function paginationOptions(): Option[] {
 
 export function metricsOptions(): Option[] {
   return [
-    new Option('--from <date>', 'Start date (ISO 8601)'),
-    new Option('--to <date>', 'End date (ISO 8601)'),
-    new Option('--interval <interval>', 'Time interval (e.g., 1h, 1d)'),
+    new Option('--from <date>', 'Start date (ISO 8601, default: 24h ago)'),
+    new Option('--to <date>', 'End date (ISO 8601, default: now)'),
+    new Option('--interval <seconds>', 'Interval in seconds (default: 3600)'),
   ];
 }
 

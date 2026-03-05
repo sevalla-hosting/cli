@@ -131,10 +131,10 @@ sevalla apps domains list --app-id <id>
 sevalla apps domains add <app-id> --name example.com
 sevalla apps domains get <domain-id> --app-id <id>
 sevalla apps domains update <domain-id> --app-id <id>
-sevalla apps domains delete <domain-id> --app-id <id>
-sevalla apps domains set-primary <domain-id> --app-id <id>
-sevalla apps domains toggle <domain-id> --app-id <id>
-sevalla apps domains refresh-status <domain-id> --app-id <id>
+sevalla apps domains delete <app-id> <domain-id>
+sevalla apps domains set-primary <app-id> <domain-id>
+sevalla apps domains toggle <app-id> <domain-id>
+sevalla apps domains refresh-status <app-id> <domain-id>
 ```
 
 ### Application Environment Variables
@@ -143,7 +143,7 @@ sevalla apps domains refresh-status <domain-id> --app-id <id>
 sevalla apps env-vars list --app-id <id>
 sevalla apps env-vars create <app-id> --key MY_VAR --value "my value"
 sevalla apps env-vars update <env-var-id> --app-id <id> --value "new value"
-sevalla apps env-vars delete <env-var-id> --app-id <id>
+sevalla apps env-vars delete <app-id> <env-var-id>
 ```
 
 ### Application Logs
@@ -178,7 +178,7 @@ sevalla apps ip-restriction update <app-id> --type allow --ip-list "1.2.3.4,5.6.
 ```bash
 sevalla apps tcp-proxies list --app-id <id>
 sevalla apps tcp-proxies create <app-id> --port 3000
-sevalla apps tcp-proxies delete <tcp-proxy-id> --app-id <id>
+sevalla apps tcp-proxies delete <app-id> <tcp-proxy-id>
 ```
 
 ### Private Ports
@@ -186,7 +186,7 @@ sevalla apps tcp-proxies delete <tcp-proxy-id> --app-id <id>
 ```bash
 sevalla apps private-ports list --app-id <id>
 sevalla apps private-ports create <app-id> --port 8080 --protocol TCP
-sevalla apps private-ports delete <private-port-id> --app-id <id>
+sevalla apps private-ports delete <app-id> <private-port-id>
 ```
 
 ### Deployment Hook
