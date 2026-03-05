@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/sevalla-hosting/cli/compare/v1.5.0...v1.6.0) (2026-03-05)
+
+
+### Features
+
+* enhance CI workflow for automated binary releases and Homebrew updates ([c909b2d](https://github.com/sevalla-hosting/cli/commit/c909b2dd7f0c7fd9b59e35007f974670e2245636))
+
 # [1.5.0](https://github.com/sevalla-hosting/cli/compare/v1.4.0...v1.5.0) (2026-03-05)
 
 
