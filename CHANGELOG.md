@@ -1,3 +1,11 @@
+## [1.7.1](https://github.com/sevalla-hosting/cli/compare/v1.7.0...v1.7.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* rename timestamp to time in metrics query and formatter ([5106a68](https://github.com/sevalla-hosting/cli/commit/5106a68e946f7123a738d73f5cd786457ece6941))
+* rename timestamp to time in metrics query and formatter ([ab9b1b9](https://github.com/sevalla-hosting/cli/commit/ab9b1b93493c5825cb26c2a4a9bb6bb9a1890ddb))
+
 # [1.7.0](https://github.com/sevalla-hosting/cli/compare/v1.6.0...v1.7.0) (2026-03-05)
 
 
