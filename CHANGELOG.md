@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/sevalla-hosting/cli/compare/v1.6.0...v1.7.0) (2026-03-05)
+
+
+### Features
+
+* update metrics query options with default values and improve command usage documentation ([6c624c4](https://github.com/sevalla-hosting/cli/commit/6c624c41639cbfe2e10668c66b3516a92b4d380a))
+
 # [1.6.0](https://github.com/sevalla-hosting/cli/compare/v1.5.0...v1.6.0) (2026-03-05)
 
 
