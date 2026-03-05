@@ -1,0 +1,17 @@
+import { makeListCommand } from '../../helpers/command-factory.ts';
+
+export const apiKeysListCommand = makeListCommand({
+  name: 'list',
+  description: 'List all API keys',
+  columns: [
+    { header: 'ID', key: 'id' },
+    { header: 'Name', key: 'name' },
+    { header: 'Enabled', key: 'enabled' },
+    { header: 'Expires At', key: 'expires_at' },
+  ],
+  apiCall: (client, opts) =>
+    client.get('/api-keys', {
+      page: opts['page'] as number,
+      per_page: opts['perPage'] as number,
+    }),
+});

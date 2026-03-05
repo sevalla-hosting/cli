@@ -1,0 +1,46 @@
+import { Command } from 'commander';
+import { appsListCommand } from './list.ts';
+import { appsGetCommand } from './get.ts';
+import { appsCreateCommand } from './create.ts';
+import { appsUpdateCommand } from './update.ts';
+import { appsDeleteCommand } from './delete.ts';
+import { appsActivateCommand } from './activate.ts';
+import { appsSuspendCommand } from './suspend.ts';
+import { appsCloneCommand } from './clone.ts';
+import { appsPurgeCacheCommand } from './purge-cache.ts';
+import { appsCdnToggleCommand } from './cdn-toggle.ts';
+import { makeDeploymentsCommands } from './deployments/index.ts';
+import { makeProcessesCommands } from './processes/index.ts';
+import { makeEnvVarsCommands } from './env-vars/index.ts';
+import { makeDomainsCommands } from './domains/index.ts';
+import { makeDeploymentHookCommands } from './deployment-hook/index.ts';
+import { makeLogsCommands } from './logs/index.ts';
+import { makeIpRestrictionCommands } from './ip-restriction/index.ts';
+import { makeTcpProxiesCommands } from './tcp-proxies/index.ts';
+import { makePrivatePortsCommands } from './private-ports/index.ts';
+import { makeAppMetricsCommands } from './metrics/index.ts';
+
+export function makeAppsCommand(): Command {
+  const cmd = new Command('apps').description('Manage applications');
+  cmd.addCommand(appsListCommand);
+  cmd.addCommand(appsGetCommand);
+  cmd.addCommand(appsCreateCommand);
+  cmd.addCommand(appsUpdateCommand);
+  cmd.addCommand(appsDeleteCommand);
+  cmd.addCommand(appsActivateCommand);
+  cmd.addCommand(appsSuspendCommand);
+  cmd.addCommand(appsCloneCommand);
+  cmd.addCommand(appsPurgeCacheCommand);
+  cmd.addCommand(appsCdnToggleCommand);
+  cmd.addCommand(makeDeploymentsCommands());
+  cmd.addCommand(makeProcessesCommands());
+  cmd.addCommand(makeEnvVarsCommands());
+  cmd.addCommand(makeDomainsCommands());
+  cmd.addCommand(makeDeploymentHookCommands());
+  cmd.addCommand(makeLogsCommands());
+  cmd.addCommand(makeIpRestrictionCommands());
+  cmd.addCommand(makeTcpProxiesCommands());
+  cmd.addCommand(makePrivatePortsCommands());
+  cmd.addCommand(makeAppMetricsCommands());
+  return cmd;
+}
