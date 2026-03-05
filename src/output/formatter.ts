@@ -37,10 +37,7 @@ export function printWarning(message: string): void {
   console.log(chalk.yellow(`\u26A0 ${message}`));
 }
 
-export function printTimeSeries(
-  data: Array<{ time: string; value: number }>,
-  label: string,
-): void {
+export function printTimeSeries(data: Array<{ time: string; value: number }>, label: string): void {
   if (data.length === 0) {
     console.log(chalk.dim('No metrics data available.'));
     return;
