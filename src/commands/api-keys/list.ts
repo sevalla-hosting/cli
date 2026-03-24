@@ -9,9 +9,5 @@ export const apiKeysListCommand = makeListCommand({
     { header: 'Enabled', key: 'enabled' },
     { header: 'Expires At', key: 'expires_at' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/api-keys', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/api-keys'),
 });

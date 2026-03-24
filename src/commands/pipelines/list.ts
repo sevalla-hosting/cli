@@ -8,9 +8,5 @@ export const pipelinesListCommand = makeListCommand({
     { header: 'Name', key: 'name' },
     { header: 'Status', key: 'status' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/pipelines', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/pipelines'),
 });

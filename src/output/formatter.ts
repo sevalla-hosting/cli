@@ -17,11 +17,12 @@ export function printTable<T>(response: PaginatedResponse<T> | T[], columns: Col
 
   console.log(renderTable(items, columns));
 
-  if (!Array.isArray(response) && response.pagination) {
-    const { page, per_page, total } = response.pagination;
-    const start = (page - 1) * per_page + 1;
-    const end = Math.min(page * per_page, total);
-    console.log(chalk.dim(`Showing ${start}-${end} of ${total}`));
+  if (!Array.isArray(response) && response.total !== undefined) {
+    const offset = response.offset ?? 0;
+    const limit = response.limit ?? items.length;
+    const start = offset + 1;
+    const end = Math.min(offset + limit, response.total);
+    console.log(chalk.dim(`Showing ${start}-${end} of ${response.total}`));
   }
 }
 

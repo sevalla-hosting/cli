@@ -1,18 +1,15 @@
 export type QueryParams = Record<string, string | number | boolean | undefined>;
 
 export interface PaginationQuery {
-  page?: number;
-  per_page?: number;
+  limit?: number;
+  offset?: number;
 }
 
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination?: {
-    page: number;
-    per_page: number;
-    total: number;
-    total_pages: number;
-  };
+  total?: number;
+  offset?: number;
+  limit?: number;
 }
 
 export interface MetricsQuery extends QueryParams {

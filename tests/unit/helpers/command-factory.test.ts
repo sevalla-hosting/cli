@@ -23,7 +23,9 @@ describe('Command Factory', () => {
       columns: [{ header: 'ID', key: 'id' }],
       apiCall: async () => ({
         data: [],
-        pagination: { page: 1, per_page: 25, total: 0, total_pages: 0 },
+        total: 0,
+        offset: 0,
+        limit: 25,
       }),
     });
 
@@ -157,5 +159,109 @@ describe('Command Factory', () => {
 
     const opts = cmd.options.map((o) => o.long);
     assert.ok(opts.includes('--dry-run'));
+  });
+
+  it('should convert page/perPage to limit/offset and inject into GET requests', async () => {
+    const originalFetch = globalThis.fetch;
+    let capturedUrl = '';
+
+    globalThis.fetch = (async (url: string) => {
+      capturedUrl = url;
+      return new Response(JSON.stringify({ data: [], total: 0, offset: 0, limit: 10 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const cmd = makeListCommand({
+        name: 'list',
+        description: 'List items',
+        columns: [{ header: 'ID', key: 'id' }],
+        apiCall: (client) => client.get('/items'),
+      });
+
+      // Prevent commander from calling process.exit
+      cmd.exitOverride();
+      cmd.configureOutput({ writeErr: () => {}, writeOut: () => {} });
+
+      await cmd.parseAsync(['--page', '3', '--per-page', '10', '--json'], { from: 'user' });
+
+      const url = new URL(capturedUrl);
+      assert.equal(url.searchParams.get('limit'), '10');
+      assert.equal(url.searchParams.get('offset'), '20');
+      // Should NOT send the old page/per_page params
+      assert.equal(url.searchParams.has('page'), false);
+      assert.equal(url.searchParams.has('per_page'), false);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('should use default pagination (page 1, 25 per page) when no flags given', async () => {
+    const originalFetch = globalThis.fetch;
+    let capturedUrl = '';
+
+    globalThis.fetch = (async (url: string) => {
+      capturedUrl = url;
+      return new Response(JSON.stringify({ data: [], total: 0, offset: 0, limit: 25 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const cmd = makeListCommand({
+        name: 'list',
+        description: 'List items',
+        columns: [{ header: 'ID', key: 'id' }],
+        apiCall: (client) => client.get('/items'),
+      });
+
+      cmd.exitOverride();
+      cmd.configureOutput({ writeErr: () => {}, writeOut: () => {} });
+
+      await cmd.parseAsync(['--json'], { from: 'user' });
+
+      const url = new URL(capturedUrl);
+      assert.equal(url.searchParams.get('limit'), '25');
+      assert.equal(url.searchParams.get('offset'), '0');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('should preserve extra query params alongside pagination', async () => {
+    const originalFetch = globalThis.fetch;
+    let capturedUrl = '';
+
+    globalThis.fetch = (async (url: string) => {
+      capturedUrl = url;
+      return new Response(JSON.stringify({ data: [], total: 0, offset: 0, limit: 25 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const cmd = makeListCommand({
+        name: 'list',
+        description: 'List items',
+        columns: [{ header: 'ID', key: 'id' }],
+        apiCall: (client) => client.get('/items', { status: 'active' }),
+      });
+
+      cmd.exitOverride();
+      cmd.configureOutput({ writeErr: () => {}, writeOut: () => {} });
+
+      await cmd.parseAsync(['--page', '2', '--json'], { from: 'user' });
+
+      const url = new URL(capturedUrl);
+      assert.equal(url.searchParams.get('limit'), '25');
+      assert.equal(url.searchParams.get('offset'), '25');
+      assert.equal(url.searchParams.get('status'), 'active');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

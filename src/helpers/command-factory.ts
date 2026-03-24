@@ -20,7 +20,7 @@ import {
   dataOption,
 } from './flags.ts';
 import type { ColumnDef } from '../output/table.ts';
-import type { PaginatedResponse, MetricsQuery } from '../client/types.ts';
+import type { PaginatedResponse, MetricsQuery, QueryParams } from '../client/types.ts';
 import { validateId } from './validate.ts';
 
 interface CommandContext {
@@ -74,7 +74,27 @@ export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
         validateId(opts[camelName] as string, config.parentIdFlag.name);
       }
       if (!json) startSpinner('Fetching...');
-      const result = await config.apiCall(client, opts);
+
+      // Convert page/perPage to limit/offset for the API
+      const perPage = opts['perPage'] as number;
+      const page = opts['page'] as number;
+      const paginationQuery: QueryParams = {
+        limit: perPage,
+        offset: (page - 1) * perPage,
+      };
+
+      // Wrap client so apiCall's GET requests include pagination automatically
+      const paginatedClient = new Proxy(client, {
+        get: (target, prop, receiver) => {
+          if (prop === 'get') {
+            return <T>(path: string, query?: QueryParams): Promise<T> =>
+              target.get<T>(path, { ...paginationQuery, ...query });
+          }
+          return Reflect.get(target, prop, receiver);
+        },
+      });
+
+      const result = await config.apiCall(paginatedClient, opts);
       stopSpinner();
       if (json) {
         printJson(Array.isArray(result) ? result : result.data);

@@ -8,9 +8,5 @@ export const loadBalancersListCommand = makeListCommand({
     { header: 'Name', key: 'display_name' },
     { header: 'Status', key: 'status' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/load-balancers', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/load-balancers'),
 });
