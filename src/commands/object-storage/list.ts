@@ -8,9 +8,5 @@ export const objectStorageListCommand = makeListCommand({
     { header: 'Name', key: 'display_name' },
     { header: 'Status', key: 'status' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/object-storage', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/object-storage'),
 });

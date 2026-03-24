@@ -9,9 +9,5 @@ export const databasesListCommand = makeListCommand({
     { header: 'Type', key: 'type' },
     { header: 'Status', key: 'status' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/databases', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/databases'),
 });

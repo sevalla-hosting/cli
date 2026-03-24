@@ -9,9 +9,6 @@ export const deploymentsListCommand = makeListCommand({
     { header: 'Created At', key: 'created_at' },
   ],
   apiCall: (client, opts) =>
-    client.get(`/applications/${opts['appId']}/deployments`, {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+    client.get(`/applications/${opts['appId']}/deployments`),
   parentIdFlag: { name: 'app-id', description: 'Application ID' },
 });

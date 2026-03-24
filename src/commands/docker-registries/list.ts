@@ -8,9 +8,5 @@ export const dockerRegistriesListCommand = makeListCommand({
     { header: 'Name', key: 'name' },
     { header: 'URL', key: 'url' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/docker-registries', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/docker-registries'),
 });

@@ -8,9 +8,5 @@ export const appsListCommand = makeListCommand({
     { header: 'Name', key: 'display_name' },
     { header: 'Status', key: 'status' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/applications', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/applications'),
 });

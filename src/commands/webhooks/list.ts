@@ -9,9 +9,5 @@ export const webhooksListCommand = makeListCommand({
     { header: 'Events', key: 'events' },
     { header: 'Enabled', key: 'enabled' },
   ],
-  apiCall: (client, opts) =>
-    client.get('/webhooks', {
-      page: opts['page'] as number,
-      per_page: opts['perPage'] as number,
-    }),
+  apiCall: (client) => client.get('/webhooks'),
 });
