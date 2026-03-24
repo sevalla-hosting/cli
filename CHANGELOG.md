@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/sevalla-hosting/cli/compare/v1.7.1...v1.7.2) (2026-03-24)
+
+
+### Bug Fixes
+
+* update pagination handling to use limit/offset instead of page/per_page ([#1](https://github.com/sevalla-hosting/cli/issues/1)) ([33dc5cd](https://github.com/sevalla-hosting/cli/commit/33dc5cd1c9b3cd4eb854860026dc97a2eefd65d9))
+
 ## [1.7.1](https://github.com/sevalla-hosting/cli/compare/v1.7.0...v1.7.1) (2026-03-05)
 
 
