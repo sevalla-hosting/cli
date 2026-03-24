@@ -18,7 +18,6 @@ export const processesListCommand = makeListCommand({
     },
     { header: 'Resource Size', key: 'resource_type_name' },
   ],
-  apiCall: (client, opts) =>
-    client.get(`/applications/${opts['appId']}/processes`),
+  apiCall: (client, opts) => client.get(`/applications/${opts['appId']}/processes`),
   parentIdFlag: { name: 'app-id', description: 'Application ID' },
 });

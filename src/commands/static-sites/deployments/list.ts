@@ -8,7 +8,6 @@ export const deploymentsListCommand = makeListCommand({
     { header: 'Status', key: 'status' },
     { header: 'Created At', key: 'created_at' },
   ],
-  apiCall: (client, opts) =>
-    client.get(`/static-sites/${opts['siteId']}/deployments`),
+  apiCall: (client, opts) => client.get(`/static-sites/${opts['siteId']}/deployments`),
   parentIdFlag: { name: 'site-id', description: 'Static site ID' },
 });
