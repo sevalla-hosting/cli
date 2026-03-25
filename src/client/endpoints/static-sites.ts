@@ -15,6 +15,8 @@ export interface StaticSite {
   source: string;
   auto_deploy: boolean;
   is_preview_enabled: boolean;
+  allow_deploy_paths: string[];
+  ignore_deploy_paths: string[];
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +37,8 @@ export interface CreateStaticSiteBody {
   index_file?: string;
   error_file?: string;
   project_id?: string;
+  allow_deploy_paths?: string[];
+  ignore_deploy_paths?: string[];
 }
 
 export interface UpdateStaticSiteBody {
@@ -45,6 +49,8 @@ export interface UpdateStaticSiteBody {
   node_version?: string | null;
   published_directory?: string | null;
   is_preview_enabled?: boolean;
+  allow_deploy_paths?: string[];
+  ignore_deploy_paths?: string[];
 }
 
 export interface Deployment {

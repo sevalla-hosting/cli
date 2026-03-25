@@ -13,6 +13,8 @@ export const staticSitesCreateCommand = makeCreateCommand({
     { flags: '--build-command <command>', description: 'Build command' },
     { flags: '--publish-directory <dir>', description: 'Publish directory' },
     { flags: '--node-version <version>', description: 'Node.js version' },
+    { flags: '--allow-deploy-paths <paths>', description: 'Glob patterns for paths that trigger deploy (comma-separated)' },
+    { flags: '--ignore-deploy-paths <paths>', description: 'Glob patterns for paths to exclude from deploy triggers (comma-separated)' },
   ],
   displayFields: (item: Record<string, unknown>) => ({
     ID: item['id'],
@@ -31,6 +33,8 @@ export const staticSitesCreateCommand = makeCreateCommand({
     if (opts['buildCommand']) body['build_command'] = opts['buildCommand'];
     if (opts['publishDirectory']) body['published_directory'] = opts['publishDirectory'];
     if (opts['nodeVersion']) body['node_version'] = opts['nodeVersion'];
+    if (opts['allowDeployPaths']) body['allow_deploy_paths'] = (opts['allowDeployPaths'] as string).split(',').map((s: string) => s.trim());
+    if (opts['ignoreDeployPaths']) body['ignore_deploy_paths'] = (opts['ignoreDeployPaths'] as string).split(',').map((s: string) => s.trim());
     return client.post('/static-sites', body);
   },
   successMessage: 'Static site created successfully.',
