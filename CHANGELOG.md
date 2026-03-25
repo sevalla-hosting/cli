@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/sevalla-hosting/cli/compare/v1.7.2...v1.8.0) (2026-03-25)
+
+
+### Features
+
+* add options for allow and ignore deploy paths in static site co… ([#2](https://github.com/sevalla-hosting/cli/issues/2)) ([cde0930](https://github.com/sevalla-hosting/cli/commit/cde0930a26622bece97ab9633d96231cc9474cba))
+
 ## [1.7.2](https://github.com/sevalla-hosting/cli/compare/v1.7.1...v1.7.2) (2026-03-24)
 
 
