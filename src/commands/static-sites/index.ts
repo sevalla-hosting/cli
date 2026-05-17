@@ -5,6 +5,7 @@ import { staticSitesCreateCommand } from './create.ts';
 import { staticSitesUpdateCommand } from './update.ts';
 import { staticSitesDeleteCommand } from './delete.ts';
 import { staticSitesPurgeCacheCommand } from './purge-cache.ts';
+import { staticSitesPrettyUrlToggleCommand } from './pretty-url-toggle.ts';
 import { makeDeploymentsCommands } from './deployments/index.ts';
 import { makeDomainsCommands } from './domains/index.ts';
 import { makeEnvVarsCommands } from './env-vars/index.ts';
@@ -19,6 +20,7 @@ export function makeStaticSitesCommand(): Command {
   cmd.addCommand(staticSitesUpdateCommand);
   cmd.addCommand(staticSitesDeleteCommand);
   cmd.addCommand(staticSitesPurgeCacheCommand);
+  cmd.addCommand(staticSitesPrettyUrlToggleCommand);
   cmd.addCommand(makeDeploymentsCommands());
   cmd.addCommand(makeDomainsCommands());
   cmd.addCommand(makeEnvVarsCommands());
