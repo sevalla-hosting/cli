@@ -581,6 +581,29 @@ export async function getProcessInstanceCount(
   );
 }
 
+export interface ExitCodePoint {
+  time: string;
+  value: string;
+  description: string | null;
+}
+
+export interface ExitCodesQuery {
+  from: string;
+  to: string;
+}
+
+export async function getProcessExitCodes(
+  client: ApiClient,
+  id: string,
+  processId: string,
+  query: ExitCodesQuery,
+): Promise<ExitCodePoint[]> {
+  return client.get<ExitCodePoint[]>(
+    `${BASE}/${id}/processes/${processId}/metrics/exit-codes`,
+    query as unknown as QueryParams,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Environment variables
 // ---------------------------------------------------------------------------

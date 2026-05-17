@@ -31,6 +31,21 @@ export interface ProcessResourceType {
   is_available: boolean;
 }
 
+export interface ApiKeyPermission {
+  id: string;
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+}
+
+export interface ApiKeyRole {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+}
+
 // ---------------------------------------------------------------------------
 // Endpoints
 // ---------------------------------------------------------------------------
@@ -47,4 +62,12 @@ export async function listDatabaseResourceTypes(
 
 export async function listProcessResourceTypes(client: ApiClient): Promise<ProcessResourceType[]> {
   return client.get<ProcessResourceType[]>('/resources/process-resource-types');
+}
+
+export async function listApiKeyPermissions(client: ApiClient): Promise<ApiKeyPermission[]> {
+  return client.get<ApiKeyPermission[]>('/resources/rbac/api-key-permissions');
+}
+
+export async function listApiKeyRoles(client: ApiClient): Promise<ApiKeyRole[]> {
+  return client.get<ApiKeyRole[]>('/resources/rbac/api-key-roles');
 }
