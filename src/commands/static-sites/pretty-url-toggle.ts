@@ -8,7 +8,6 @@ export const staticSitesPrettyUrlToggleCommand = makeActionCommand<PrettyUrlStat
   name: 'pretty-url-toggle',
   description: 'Toggle pretty URL redirects for a static site',
   apiCall: (client, id) => client.post(`/static-sites/${id}/pretty-url/toggle`),
-  successMessage: (result) =>
-    `Pretty URLs ${result.is_turned_on ? 'enabled' : 'disabled'}.`,
+  successMessage: (result) => `Pretty URLs ${result.is_turned_on ? 'enabled' : 'disabled'}.`,
   spinnerText: 'Toggling pretty URLs...',
 });
