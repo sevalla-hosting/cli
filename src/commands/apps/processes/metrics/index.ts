@@ -4,6 +4,7 @@ import { cpuLimitCommand } from './cpu-limit.ts';
 import { memoryUsageCommand } from './memory-usage.ts';
 import { memoryLimitCommand } from './memory-limit.ts';
 import { instanceCountCommand } from './instance-count.ts';
+import { exitCodesCommand } from './exit-codes.ts';
 
 export function makeProcessMetricsCommands(): Command {
   const cmd = new Command('metrics').description('Process metrics');
@@ -12,5 +13,6 @@ export function makeProcessMetricsCommands(): Command {
   cmd.addCommand(memoryUsageCommand);
   cmd.addCommand(memoryLimitCommand);
   cmd.addCommand(instanceCountCommand);
+  cmd.addCommand(exitCodesCommand);
   return cmd;
 }

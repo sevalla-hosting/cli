@@ -172,3 +172,19 @@ export async function deleteObjects(
 ): Promise<void> {
   return client.delete<undefined>(`/object-storage/${id}/objects`, body);
 }
+
+// ---------------------------------------------------------------------------
+// Credentials
+// ---------------------------------------------------------------------------
+
+export interface RotateCredentialsBody {
+  old_keys_ttl_hours?: number;
+}
+
+export async function rotateObjectStorageCredentials(
+  client: ApiClient,
+  id: string,
+  body?: RotateCredentialsBody,
+): Promise<ObjectStorageBucket> {
+  return client.post<ObjectStorageBucket>(`/object-storage/${id}/rotate-credentials`, body ?? {});
+}

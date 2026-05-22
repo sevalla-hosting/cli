@@ -432,3 +432,18 @@ export async function getStaticSiteTopPages(
 export async function purgeStaticSiteCache(client: ApiClient, id: string): Promise<void> {
   return client.post<undefined>(`/static-sites/${id}/purge-cache`);
 }
+
+// ---------------------------------------------------------------------------
+// Pretty URLs
+// ---------------------------------------------------------------------------
+
+export interface PrettyUrlStatus {
+  is_turned_on: boolean;
+}
+
+export async function toggleStaticSitePrettyUrl(
+  client: ApiClient,
+  id: string,
+): Promise<PrettyUrlStatus> {
+  return client.post<PrettyUrlStatus>(`/static-sites/${id}/pretty-url/toggle`);
+}
