@@ -1,3 +1,11 @@
+# [1.9.0](https://github.com/sevalla-hosting/cli/compare/v1.8.0...v1.9.0) (2026-05-22)
+
+
+### Features
+
+* add databases restart command ([#4](https://github.com/sevalla-hosting/cli/issues/4)) ([80bb1c6](https://github.com/sevalla-hosting/cli/commit/80bb1c6f4f2dfd31ef4c12059cf478429f75de53))
+* add exit codes command and usage alerts management functionality ([#3](https://github.com/sevalla-hosting/cli/issues/3)) ([08a27f8](https://github.com/sevalla-hosting/cli/commit/08a27f88782c46d75872f533984d951bc6a3d67a))
+
 # [1.8.0](https://github.com/sevalla-hosting/cli/compare/v1.7.2...v1.8.0) (2026-03-25)
 
 
