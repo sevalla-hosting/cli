@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/sevalla-hosting/cli/compare/v1.9.0...v1.10.0) (2026-05-28)
+
+
+### Features
+
+* add git lfs support with new flag for applications and static sites ([#5](https://github.com/sevalla-hosting/cli/issues/5)) ([c2b8b42](https://github.com/sevalla-hosting/cli/commit/c2b8b425615f9afbc8743fbf253236767eac7da9))
+
 # [1.9.0](https://github.com/sevalla-hosting/cli/compare/v1.8.0...v1.9.0) (2026-05-22)
 
 
