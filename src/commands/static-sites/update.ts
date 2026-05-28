@@ -16,6 +16,10 @@ export const staticSitesUpdateCommand = makeUpdateCommand({
       flags: '--ignore-deploy-paths <paths>',
       description: 'Glob patterns for paths to exclude from deploy triggers (comma-separated)',
     },
+    {
+      flags: '--git-lfs-enabled <bool>',
+      description: 'Fetch Git LFS objects during source checkout (true/false)',
+    },
   ],
   displayFields: (item: Record<string, unknown>) => ({
     ID: item['id'],
@@ -36,6 +40,8 @@ export const staticSitesUpdateCommand = makeUpdateCommand({
       body['ignore_deploy_paths'] = (opts['ignoreDeployPaths'] as string)
         .split(',')
         .map((s: string) => s.trim());
+    if (opts['gitLfsEnabled'] !== undefined)
+      body['git_lfs_enabled'] = opts['gitLfsEnabled'] === 'true';
     return client.patch(`/static-sites/${id}`, body);
   },
 });

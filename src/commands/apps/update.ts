@@ -9,6 +9,10 @@ export const appsUpdateCommand = makeUpdateCommand({
     { flags: '--build-type <type>', description: 'Build type' },
     { flags: '--dockerfile-path <path>', description: 'Dockerfile path' },
     { flags: '--docker-image <image>', description: 'Docker image' },
+    {
+      flags: '--git-lfs-enabled <bool>',
+      description: 'Fetch Git LFS objects during source checkout (true/false)',
+    },
   ],
   displayFields: (item: Record<string, unknown>) => ({
     ID: item['id'],
@@ -23,6 +27,8 @@ export const appsUpdateCommand = makeUpdateCommand({
     if (opts['buildType']) body['build_type'] = opts['buildType'];
     if (opts['dockerfilePath']) body['dockerfile_path'] = opts['dockerfilePath'];
     if (opts['dockerImage']) body['docker_image'] = opts['dockerImage'];
+    if (opts['gitLfsEnabled'] !== undefined)
+      body['git_lfs_enabled'] = opts['gitLfsEnabled'] === 'true';
     return client.patch(`/applications/${id}`, body);
   },
 });

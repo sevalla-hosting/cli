@@ -84,6 +84,7 @@ export interface ApplicationDetail extends Application {
   docker_context: string | null;
   allow_deploy_paths: string[];
   ignore_deploy_paths: string[];
+  git_lfs_enabled: boolean;
   created_by: string | null;
 }
 
@@ -271,6 +272,7 @@ export interface UpdateApplicationInput {
   buildpacks?: Array<{ order: number; source: string }>;
   allow_deploy_paths?: string[];
   ignore_deploy_paths?: string[];
+  git_lfs_enabled?: boolean;
   source?: string;
   git_type?: string;
   repo_url?: string;
