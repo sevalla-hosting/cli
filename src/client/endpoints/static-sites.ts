@@ -17,6 +17,7 @@ export interface StaticSite {
   is_preview_enabled: boolean;
   allow_deploy_paths: string[];
   ignore_deploy_paths: string[];
+  git_lfs_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +52,7 @@ export interface UpdateStaticSiteBody {
   is_preview_enabled?: boolean;
   allow_deploy_paths?: string[];
   ignore_deploy_paths?: string[];
+  git_lfs_enabled?: boolean;
 }
 
 export interface Deployment {
