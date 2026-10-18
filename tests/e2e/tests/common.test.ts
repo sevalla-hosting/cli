@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { createServer } from 'node:http'
+import type { AddressInfo } from 'node:net'
 import { sevalla, sevallaRaw } from '../helpers/cli.ts'
 
 describe('common / cross-cutting concerns', () => {
@@ -78,12 +81,44 @@ describe('common / cross-cutting concerns', () => {
   // ---------------------------------------------------------------------------
   // Version flag
   // ---------------------------------------------------------------------------
-  it('sevalla --version should print a version string', async () => {
+  it('sevalla --version should print the package version', async () => {
+    const { version } = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')) as { version: string }
     const res = await sevallaRaw(['--version'])
     assert.equal(res.exitCode, 0)
-    // The version output should be a non-empty string (e.g. "0.0.0-development" or semver)
-    assert.ok(res.stdout.trim().length > 0, 'expected version output to be non-empty')
-    // Should look like a version (contains digits and dots, or "dev")
-    assert.match(res.stdout.trim(), /\d/, 'expected version to contain at least one digit')
+    assert.equal(res.stdout.trim(), version)
+  })
+
+  // ---------------------------------------------------------------------------
+  // --json must win over terminal detection
+  // ---------------------------------------------------------------------------
+  it('sevalla apps list --json should print JSON when stdout is a terminal', async () => {
+    const res = await sevallaRaw(['apps', 'list', '--json'], { tty: true })
+    assert.equal(res.exitCode, 0, res.stderr)
+    assert.ok(Array.isArray(res.json()), 'expected a JSON array, got a table')
+  })
+
+  // ---------------------------------------------------------------------------
+  // --api-url must override SEVALLA_API_URL, before or after the subcommand
+  // ---------------------------------------------------------------------------
+  it('--api-url should route requests to the given URL', async () => {
+    const paths: string[] = []
+    const server = createServer((req, res) => {
+      paths.push(req.url ?? '')
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ data: [], total: 0 }))
+    })
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+    const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v3`
+    try {
+      const env = { SEVALLA_API_URL: 'http://127.0.0.1:9/v3' }
+      const after = await sevalla(['apps', 'list', '--api-url', url], { env })
+      assert.equal(after.exitCode, 0, after.stderr)
+      const before = await sevalla(['--api-url', url, 'apps', 'list'], { env })
+      assert.equal(before.exitCode, 0, before.stderr)
+      assert.equal(paths.length, 2)
+      assert.ok(paths.every((p) => p.startsWith('/v3/applications')), paths.join(', '))
+    } finally {
+      server.close()
+    }
   })
 })

@@ -33,15 +33,17 @@ export function sevalla(args: string[], opts?: { env?: Record<string, string>; t
   })
 }
 
-export function sevallaRaw(args: string[], opts?: { env?: Record<string, string>; timeout?: number }): Promise<CliResult> {
+// tty: make the CLI see stdout as a terminal, as it would in an interactive shell
+export function sevallaRaw(args: string[], opts?: { env?: Record<string, string>; timeout?: number; tty?: boolean }): Promise<CliResult> {
   return new Promise((resolve) => {
     const env = {
       ...process.env,
       SEVALLA_API_TOKEN: API_KEY,
       ...(opts?.env ?? {}),
     }
+    const nodeArgs = opts?.tty ? ['--import', 'data:text/javascript,process.stdout.isTTY=true'] : []
 
-    execFile('node', [CLI_PATH, ...args], { env, timeout: opts?.timeout ?? 30_000 }, (error, stdout, stderr) => {
+    execFile('node', [...nodeArgs, CLI_PATH, ...args], { env, timeout: opts?.timeout ?? 30_000 }, (error, stdout, stderr) => {
       const exitCode = error && 'code' in error ? (error.code as number) : error ? 1 : 0
       resolve({
         exitCode,
