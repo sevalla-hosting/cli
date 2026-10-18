@@ -29,6 +29,14 @@ export function createProgram(): Command {
     .addOption(apiUrlOption())
     .addOption(jsonOption());
 
+  // Root options are parsed wherever they appear (even after the subcommand), so the
+  // subcommand never sees them; hand them to the command that runs
+  program.hook('preAction', (_, actionCommand) => {
+    const { json, apiUrl } = program.opts();
+    if (json) actionCommand.setOptionValue('json', true);
+    if (apiUrl) actionCommand.setOptionValue('apiUrl', apiUrl);
+  });
+
   // Auth commands (top-level)
   program.addCommand(makeLoginCommand());
   program.addCommand(makeLogoutCommand());

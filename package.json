@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "prepack": "npm run build",
     "dev": "node src/index.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint 'src/**/*.ts'",
