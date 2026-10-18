@@ -374,7 +374,7 @@ sevalla object-storage cors-policies delete <bucket-id> <policy-id>
 
 ```bash
 sevalla object-storage objects list --bucket-id <id>
-sevalla object-storage objects delete <bucket-id> --keys a.txt,b.txt
+sevalla object-storage objects delete <bucket-id> --keys a.txt,b.txt --confirm
 ```
 
 ### Pipelines

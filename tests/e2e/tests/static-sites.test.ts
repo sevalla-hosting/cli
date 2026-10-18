@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla, rejectedBySchema } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'static-sites'
@@ -112,7 +112,7 @@ describe(RESOURCE, () => {
 
   it('should add and delete a custom domain', async () => {
     assert.ok(createdId, 'No static site was created')
-    const res = await sevalla([RESOURCE, 'domains', 'add', createdId, '--name', `e2e-ss-${Date.now()}.sevalla-cli-e2e.dev`])
+    const res = await sevalla([RESOURCE, 'domains', 'add', createdId, '--name', `e2e-ss-${Date.now()}.sevalla.com`])
     assert.equal(res.exitCode, 0, `domains add failed: ${res.stderr}`)
     const domain = res.json<{ id: string }>()
     assert.ok(domain.id)
@@ -134,7 +134,7 @@ describe(RESOURCE, () => {
       '--name', `e2e-ss-${Date.now()}`,
     ])
     // System domain renames can be refused for environment reasons, so only the request shape is asserted
-    assert.ok(!rejectedBySchema(res), `domains update rejected by schema: ${res.stderr}`)
+    assert.ok(refusedOnStateOnly(res), `domains update failed on request shape, auth or crash: ${res.stderr}`)
   })
 
   // ---------------------------------------------------------------------------

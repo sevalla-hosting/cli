@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla, rejectedBySchema } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete, safeDeleteApp } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'databases'
@@ -241,7 +241,7 @@ describe(RESOURCE, () => {
     await waitForDbReady(createdId)
     // Clusters without snapshot backup support refuse on state, but never on request shape
     const res = await sevalla([RESOURCE, 'backups', 'create', createdId, '--name', `e2e-backup-${Date.now()}`])
-    assert.ok(!rejectedBySchema(res), `backups create rejected by schema: ${res.stderr}`)
+    assert.ok(refusedOnStateOnly(res), `backups create failed on request shape, auth or crash: ${res.stderr}`)
   })
 
   it('should restore a backup', async (t) => {

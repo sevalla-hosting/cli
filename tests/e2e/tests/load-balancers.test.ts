@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla, rejectedBySchema } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'load-balancers'
@@ -88,9 +88,9 @@ describe(RESOURCE, () => {
 
   it('should add and delete a custom domain', async () => {
     assert.ok(createdId, 'No LB was created')
-    const res = await sevalla([RESOURCE, 'domains', 'add', createdId, '--name', `e2e-lb-${Date.now()}.sevalla-cli-e2e.dev`])
+    const res = await sevalla([RESOURCE, 'domains', 'add', createdId, '--name', `e2e-lb-${Date.now()}.sevalla.com`])
     // Custom domains can be refused for account or environment reasons, so only the request shape is asserted
-    assert.ok(!rejectedBySchema(res), `domains add rejected by schema: ${res.stderr}`)
+    assert.ok(refusedOnStateOnly(res), `domains add failed on request shape, auth or crash: ${res.stderr}`)
     if (res.exitCode !== 0) return
 
     const domain = res.json<{ id: string }>()

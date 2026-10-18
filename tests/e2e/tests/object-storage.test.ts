@@ -89,9 +89,16 @@ describe(RESOURCE, () => {
     }
   })
 
+  it('should refuse to delete objects without --confirm', async () => {
+    assert.ok(bucketId, 'No bucket was created')
+    const res = await sevalla([RESOURCE, 'objects', 'delete', bucketId, '--keys', 'e2e-a.txt'])
+    assert.equal(res.exitCode, 1)
+    assert.ok(res.stderr.includes('--confirm'), `expected a --confirm hint: ${res.stderr}`)
+  })
+
   it('should delete objects by key', async () => {
     assert.ok(bucketId, 'No bucket was created')
-    const res = await sevalla([RESOURCE, 'objects', 'delete', bucketId, '--keys', 'e2e-a.txt,e2e-b.txt'])
+    const res = await sevalla([RESOURCE, 'objects', 'delete', bucketId, '--keys', 'e2e-a.txt,e2e-b.txt', '--confirm'])
     assert.equal(res.exitCode, 0, `objects delete failed: ${res.stderr}`)
   })
 

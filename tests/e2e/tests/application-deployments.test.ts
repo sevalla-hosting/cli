@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla, rejectedBySchema } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDeleteApp, safeDelete, cancelAppDeployments } from '../helpers/cleanup.ts'
 
 interface Cluster {
@@ -141,7 +141,7 @@ describe('application deployments and processes', () => {
 
     // No deployment has succeeded yet, so the API may refuse on state, but never on request shape
     const res = await sevalla(['apps', 'deployments', 'rollback', createdAppId], { timeout: 120_000 })
-    assert.ok(!rejectedBySchema(res), `apps deployments rollback rejected by schema: ${res.stderr}`)
+    assert.ok(refusedOnStateOnly(res), `apps deployments rollback failed on request shape, auth or crash: ${res.stderr}`)
   })
 
   // --- Processes ---

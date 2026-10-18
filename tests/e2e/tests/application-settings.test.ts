@@ -182,7 +182,7 @@ describe('application settings', () => {
   it('should add and delete a custom domain', async () => {
     assert.ok(appId, 'appId must be set from before hook')
 
-    const res = await sevalla(['apps', 'domains', 'add', appId, '--name', `e2e-${ts}.sevalla-cli-e2e.dev`])
+    const res = await sevalla(['apps', 'domains', 'add', appId, '--name', `e2e-${ts}.sevalla.com`])
     assert.equal(res.exitCode, 0, `domains add failed: ${res.stderr}`)
     const domain = res.json<Domain>()
     assert.ok(domain.id, 'added domain should have an id')

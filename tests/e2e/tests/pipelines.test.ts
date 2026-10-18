@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla, rejectedBySchema } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete, safeDeleteApp } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'pipelines'
@@ -138,7 +138,7 @@ describe(RESOURCE, () => {
       '--source-app-id', appId,
       '--target-app-ids', appId,
     ], { timeout: 60_000 })
-    assert.ok(!rejectedBySchema(res), `promote rejected by schema: ${res.stderr}`)
+    assert.ok(refusedOnStateOnly(res), `promote failed on request shape, auth or crash: ${res.stderr}`)
   })
 
   it('should remove an app from a stage', async () => {

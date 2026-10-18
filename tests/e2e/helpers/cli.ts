@@ -53,7 +53,13 @@ export function sevallaRaw(args: string[], opts?: { env?: Record<string, string>
   })
 }
 
-// For state-dependent calls: true when the API rejected the request shape rather than the resource state
-export function rejectedBySchema(res: CliResult): boolean {
-  return res.stderr.includes("doesn't match the schema")
+// For state-dependent calls: success, or an API refusal that isn't auth or schema validation (crashes and timeouts fail)
+export function refusedOnStateOnly(res: CliResult): boolean {
+  if (res.exitCode === 0) return true
+  try {
+    const { error } = JSON.parse(res.stderr) as { error: { status?: number } }
+    return typeof error.status === 'number' && ![401, 403].includes(error.status) && !res.stderr.includes("doesn't match the schema")
+  } catch {
+    return false
+  }
 }

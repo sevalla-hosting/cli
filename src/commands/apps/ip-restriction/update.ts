@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { createClient } from '../../../client/api-client.ts';
 import { handleError } from '../../../errors/handler.ts';
 import { jsonOption, resolveJsonMode } from '../../../helpers/flags.ts';
@@ -10,7 +10,11 @@ export const ipRestrictionUpdateCommand = new Command('update')
   .argument('<app-id>', 'Application ID')
   .requiredOption('--type <type>', 'Restriction type: allow or deny')
   .requiredOption('--ip-list <ips>', 'Comma-separated IP addresses/CIDRs')
-  .requiredOption('--enabled <bool>', 'Enable or disable (true/false)')
+  .addOption(
+    new Option('--enabled <bool>', 'Enable or disable')
+      .choices(['true', 'false'])
+      .makeOptionMandatory(),
+  )
   .addOption(jsonOption())
   .action(async (appId: string, opts: Record<string, unknown>) => {
     const client = createClient({ apiUrl: opts['apiUrl'] as string | undefined });
