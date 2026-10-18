@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/sevalla-hosting/cli/compare/v1.10.1...v1.10.2) (2026-10-18)
+
+
+### Bug Fixes
+
+* honor --json and --api-url after subcommands, and report the real version ([#10](https://github.com/sevalla-hosting/cli/issues/10)) ([7c54c89](https://github.com/sevalla-hosting/cli/commit/7c54c89173774635a7072d4bd8d2b8f0bbcf972d))
+
 ## [1.10.1](https://github.com/sevalla-hosting/cli/compare/v1.10.0...v1.10.1) (2026-10-18)
 
 
