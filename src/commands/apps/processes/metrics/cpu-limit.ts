@@ -5,6 +5,8 @@ export const cpuLimitCommand = makeMetricsCommand({
   description: 'Get process CPU limit metrics',
   label: 'CPU Limit',
   parentIds: ['app-id', 'process-id'],
-  apiCall: (client, compositeId, query) =>
-    client.get(`/applications/${compositeId}/metrics/cpu-limit`, query),
+  apiCall: (client, compositeId, query) => {
+    const [appId, processId] = compositeId.split('/');
+    return client.get(`/applications/${appId}/processes/${processId}/metrics/cpu-limit`, query);
+  },
 });

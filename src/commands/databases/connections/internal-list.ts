@@ -10,4 +10,5 @@ export const internalConnectionsListCommand = makeListCommand({
     { header: 'Status', key: 'status' },
   ],
   apiCall: (client, opts) => client.get(`/databases/${opts['dbId']}/internal-connections`),
+  paginated: false,
 });

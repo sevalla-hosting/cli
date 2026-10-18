@@ -5,6 +5,11 @@ export const instanceCountCommand = makeMetricsCommand({
   description: 'Get process instance count metrics',
   label: 'Instance Count',
   parentIds: ['app-id', 'process-id'],
-  apiCall: (client, compositeId, query) =>
-    client.get(`/applications/${compositeId}/metrics/instance-count`, query),
+  apiCall: (client, compositeId, query) => {
+    const [appId, processId] = compositeId.split('/');
+    return client.get(
+      `/applications/${appId}/processes/${processId}/metrics/instance-count`,
+      query,
+    );
+  },
 });

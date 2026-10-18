@@ -264,4 +264,40 @@ describe('Command Factory', () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it('should not send pagination or register page flags when paginated is false', async () => {
+    const originalFetch = globalThis.fetch;
+    let capturedUrl = '';
+
+    globalThis.fetch = (async (url: string) => {
+      capturedUrl = url;
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const cmd = makeListCommand({
+        name: 'list',
+        description: 'List items',
+        columns: [{ header: 'ID', key: 'id' }],
+        apiCall: (client) => client.get('/items'),
+        paginated: false,
+      });
+
+      cmd.exitOverride();
+      cmd.configureOutput({ writeErr: () => {}, writeOut: () => {} });
+
+      assert.equal(
+        cmd.options.some((o) => o.long === '--page'),
+        false,
+      );
+      await cmd.parseAsync(['--json'], { from: 'user' });
+
+      assert.equal(new URL(capturedUrl).search, '');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });

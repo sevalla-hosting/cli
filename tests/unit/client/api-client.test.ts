@@ -63,6 +63,16 @@ describe('ApiClient', () => {
     assert.equal(result, undefined);
   });
 
+  it('should handle 202 Accepted with an empty body', async () => {
+    const mockFetch = mock.fn(async () => new Response('', { status: 202 }));
+    globalThis.fetch = mockFetch as typeof fetch;
+
+    const client = new ApiClient({ baseUrl: 'https://api.test.com', token: 'tok' });
+    const result = await client.delete<undefined>('/items/123');
+
+    assert.equal(result, undefined);
+  });
+
   it('should throw SevallaApiError on error responses', async () => {
     const mockFetch = mock.fn(
       async () =>

@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete, safeDeleteApp } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'pipelines'
@@ -129,6 +129,18 @@ describe(RESOURCE, () => {
     assert.equal(res.exitCode, 0, `stages apps add failed: ${res.stderr}`)
   })
 
+  it('should send a promote request the API accepts', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    assert.ok(appId, 'No app was created')
+    // The app has no successful deployment, so the API may refuse on state, but never on request shape
+    const res = await sevalla([
+      RESOURCE, 'promote', createdId,
+      '--source-app-id', appId,
+      '--target-app-ids', appId,
+    ], { timeout: 60_000 })
+    assert.ok(refusedOnStateOnly(res), `promote failed on request shape, auth or crash: ${res.stderr}`)
+  })
+
   it('should remove an app from a stage', async () => {
     assert.ok(createdId, 'No pipeline was created')
     assert.ok(stageId, 'No stage was created')
@@ -149,6 +161,35 @@ describe(RESOURCE, () => {
     ])
     assert.equal(res.exitCode, 0, `stages delete failed: ${res.stderr}`)
     stageId = undefined
+  })
+
+  // ---------------------------------------------------------------------------
+  // Preview
+  // ---------------------------------------------------------------------------
+  it('should enable pipeline preview', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    const res = await sevalla([
+      RESOURCE, 'preview', 'enable', createdId,
+      '--repo-url', 'https://github.com/kotapeter/pack-demo',
+      '--auto-create-app', 'false',
+    ], { timeout: 60_000 })
+    assert.equal(res.exitCode, 0, `preview enable failed: ${res.stderr}`)
+  })
+
+  it('should update pipeline preview settings', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    const res = await sevalla([
+      RESOURCE, 'preview', 'update', createdId,
+      '--delete-stale-apps', 'true',
+      '--stale-app-days', '7',
+    ], { timeout: 60_000 })
+    assert.equal(res.exitCode, 0, `preview update failed: ${res.stderr}`)
+  })
+
+  it('should disable pipeline preview', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    const res = await sevalla([RESOURCE, 'preview', 'disable', createdId], { timeout: 60_000 })
+    assert.equal(res.exitCode, 0, `preview disable failed: ${res.stderr}`)
   })
 
   // ---------------------------------------------------------------------------

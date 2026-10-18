@@ -69,7 +69,9 @@ export class ApiClient {
       );
     }
 
-    return (await response.json()) as T;
+    // Some endpoints answer 202 with no body (e.g. object storage delete)
+    const text = await response.text();
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 
   async get<T>(path: string, query?: QueryParams): Promise<T> {

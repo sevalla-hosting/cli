@@ -2,15 +2,9 @@ import { makeActionCommand } from '../../../helpers/command-factory.ts';
 
 export const deploymentsRollbackCommand = makeActionCommand({
   name: 'rollback',
-  description: 'Rollback to a previous deployment',
+  description: 'Rollback to the most recent successful deployment',
   idArg: 'app-id',
-  options: [
-    { flags: '--deployment-id <id>', description: 'Deployment ID to rollback to', required: true },
-  ],
-  apiCall: (client, id, opts) =>
-    client.post(`/applications/${id}/deployments/rollback`, {
-      deployment_id: opts['deploymentId'],
-    }),
+  apiCall: (client, id) => client.post(`/applications/${id}/deployments/rollback`),
   successMessage: 'Rollback initiated.',
   spinnerText: 'Rolling back...',
 });

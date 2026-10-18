@@ -1,8 +1,8 @@
-import { makeMetricsCommand } from '../../../helpers/command-factory.ts';
+import { makeGetCommand } from '../../../helpers/command-factory.ts';
 
-export const usedStorageCommand = makeMetricsCommand({
+export const usedStorageCommand = makeGetCommand({
   name: 'used-storage',
-  description: 'Get database used storage metrics',
-  label: 'Used Storage',
-  apiCall: (client, id, query) => client.get(`/databases/${id}/metrics/used-storage`, query),
+  description: 'Get database used storage metric',
+  displayFields: (item: { value: number }) => ({ 'Used Storage': item.value }),
+  apiCall: (client, id) => client.get(`/databases/${id}/metrics/used-storage`),
 });

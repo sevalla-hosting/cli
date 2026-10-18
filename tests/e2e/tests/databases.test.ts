@@ -1,7 +1,7 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla } from '../helpers/cli.ts'
-import { safeDelete } from '../helpers/cleanup.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
+import { safeDelete, safeDeleteApp } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'databases'
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -36,6 +36,7 @@ describe(RESOURCE, () => {
   let projectId: string
   let clusterId: string
   let resourceTypeId: string
+  let appId: string | undefined
 
   before(async () => {
     const projName = `e2e-db-proj-${Date.now()}`
@@ -54,9 +55,24 @@ describe(RESOURCE, () => {
     const dbTypes = dbTypesRes.json<{ id: string }[]>()
     assert.ok(dbTypes.length > 0)
     resourceTypeId = (dbTypes[0] as { id: string }).id
+
+    // Target for internal connection tests
+    const appRes = await sevalla([
+      'apps', 'create',
+      '--name', `e2e-db-conn-app-${Date.now()}`,
+      '--project', projectId,
+      '--cluster', clusterId,
+      '--source', 'dockerImage',
+      '--docker-image', 'nginx:latest',
+    ])
+    assert.equal(appRes.exitCode, 0, `apps create failed: ${appRes.stderr}`)
+    appId = appRes.json<{ id: string }>().id
   })
 
   after(async () => {
+    if (appId) {
+      await safeDeleteApp(appId)
+    }
     if (createdId) {
       await waitForDbTerminal(createdId).catch(() => {})
       await safeDelete([RESOURCE], createdId)
@@ -133,12 +149,36 @@ describe(RESOURCE, () => {
   })
 
   // ---------------------------------------------------------------------------
+  // Storage metrics
+  // ---------------------------------------------------------------------------
+  it('should get storage metrics', async () => {
+    assert.ok(createdId, 'No database was created')
+    for (const metric of ['all-storage', 'used-storage']) {
+      const res = await sevalla([RESOURCE, 'metrics', metric, createdId])
+      assert.equal(res.exitCode, 0, `metrics ${metric} failed: ${res.stderr}`)
+      assert.equal(typeof res.json<{ value: number }>().value, 'number')
+    }
+  })
+
+  // ---------------------------------------------------------------------------
   // IP Restriction
   // ---------------------------------------------------------------------------
   it('should get IP restriction', async () => {
     assert.ok(createdId, 'No database was created')
     const res = await sevalla([RESOURCE, 'ip-restriction', 'get', createdId])
     assert.equal(res.exitCode, 0, `ip-restriction get failed: ${res.stderr}`)
+  })
+
+  it('should update IP restriction', async () => {
+    assert.ok(createdId, 'No database was created')
+    const res = await sevalla([
+      RESOURCE, 'ip-restriction', 'update', createdId,
+      '--type', 'allow',
+      '--ip-list', '8.8.8.8,1.1.1.0/24',
+      '--enabled', 'false',
+    ])
+    assert.equal(res.exitCode, 0, `ip-restriction update failed: ${res.stderr}`)
+    await waitForDbReady(createdId)
   })
 
   // ---------------------------------------------------------------------------
@@ -148,6 +188,25 @@ describe(RESOURCE, () => {
     assert.ok(createdId, 'No database was created')
     const res = await sevalla([RESOURCE, 'connections', 'internal-list', '--db-id', createdId])
     assert.equal(res.exitCode, 0, `internal-list failed: ${res.stderr}`)
+  })
+
+  it('should create and delete an internal connection', async () => {
+    assert.ok(createdId, 'No database was created')
+    assert.ok(appId, 'No app was created')
+    const res = await sevalla([
+      RESOURCE, 'connections', 'internal-create', createdId,
+      '--target-id', appId,
+      '--target-type', 'app',
+    ])
+    assert.equal(res.exitCode, 0, `internal-create failed: ${res.stderr}`)
+
+    const listRes = await sevalla([RESOURCE, 'connections', 'internal-list', '--db-id', createdId])
+    assert.equal(listRes.exitCode, 0, `internal-list failed: ${listRes.stderr}`)
+    const conn = listRes.json<{ id: string; target_id: string }[]>().find((c) => c.target_id === appId)
+    assert.ok(conn, 'created connection should be listed')
+
+    const delRes = await sevalla([RESOURCE, 'connections', 'internal-delete', createdId, conn.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `internal-delete failed: ${delRes.stderr}`)
   })
 
   // ---------------------------------------------------------------------------
@@ -175,6 +234,37 @@ describe(RESOURCE, () => {
     assert.ok(createdId, 'No database was created')
     const res = await sevalla([RESOURCE, 'backups', 'list', '--db-id', createdId])
     assert.equal(res.exitCode, 0, `backups list failed: ${res.stderr}`)
+  })
+
+  it('should send a backup create request the API accepts', async () => {
+    assert.ok(createdId, 'No database was created')
+    await waitForDbReady(createdId)
+    // Clusters without snapshot backup support refuse on state, but never on request shape
+    const res = await sevalla([RESOURCE, 'backups', 'create', createdId, '--name', `e2e-backup-${Date.now()}`])
+    assert.ok(refusedOnStateOnly(res), `backups create failed on request shape, auth or crash: ${res.stderr}`)
+  })
+
+  it('should restore a backup', async (t) => {
+    assert.ok(createdId, 'No database was created')
+    const listRes = await sevalla([RESOURCE, 'backups', 'list', '--db-id', createdId])
+    assert.equal(listRes.exitCode, 0, `backups list failed: ${listRes.stderr}`)
+    const backup = listRes.json<{ id: string }[]>()[0]
+    if (!backup) return t.skip('no backup available on this cluster')
+
+    await waitForDbReady(createdId)
+    const res = await sevalla([RESOURCE, 'backups', 'restore', createdId, backup.id])
+    assert.equal(res.exitCode, 0, `backups restore failed: ${res.stderr}`)
+    await waitForDbReady(createdId)
+  })
+
+  // ---------------------------------------------------------------------------
+  // Reset password
+  // ---------------------------------------------------------------------------
+  it('should reset the database password', async () => {
+    assert.ok(createdId, 'No database was created')
+    const res = await sevalla([RESOURCE, 'reset-password', createdId, '--new-password', 'E2eNewPass5678'])
+    assert.equal(res.exitCode, 0, `reset-password failed: ${res.stderr}`)
+    await waitForDbReady(createdId)
   })
 
   // ---------------------------------------------------------------------------

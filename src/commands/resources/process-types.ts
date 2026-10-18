@@ -8,4 +8,5 @@ export const resourcesProcessTypesCommand = makeListCommand({
     { header: 'Name', key: 'name' },
   ],
   apiCall: (client) => client.get('/resources/process-resource-types'),
+  paginated: false,
 });

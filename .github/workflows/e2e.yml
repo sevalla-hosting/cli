@@ -27,29 +27,37 @@ jobs:
       matrix:
         suite:
           - name: applications
-            file: e2e/tests/applications.test.ts
+            file: tests/e2e/tests/applications.test.ts
+          - name: application-deployments
+            file: tests/e2e/tests/application-deployments.test.ts
+          - name: application-env-vars
+            file: tests/e2e/tests/application-env-vars.test.ts
+          - name: application-lifecycle
+            file: tests/e2e/tests/application-lifecycle.test.ts
+          - name: application-settings
+            file: tests/e2e/tests/application-settings.test.ts
           - name: databases
-            file: e2e/tests/databases.test.ts
+            file: tests/e2e/tests/databases.test.ts
           - name: static-sites
-            file: e2e/tests/static-sites.test.ts
+            file: tests/e2e/tests/static-sites.test.ts
           - name: load-balancers
-            file: e2e/tests/load-balancers.test.ts
+            file: tests/e2e/tests/load-balancers.test.ts
           - name: object-storage
-            file: e2e/tests/object-storage.test.ts
+            file: tests/e2e/tests/object-storage.test.ts
           - name: pipelines
-            file: e2e/tests/pipelines.test.ts
+            file: tests/e2e/tests/pipelines.test.ts
           - name: projects
-            file: e2e/tests/projects.test.ts
+            file: tests/e2e/tests/projects.test.ts
           - name: webhooks
-            file: e2e/tests/webhooks.test.ts
+            file: tests/e2e/tests/webhooks.test.ts
           - name: api-keys
-            file: e2e/tests/api-keys.test.ts
+            file: tests/e2e/tests/api-keys.test.ts
           - name: docker-registries
-            file: e2e/tests/docker-registries.test.ts
+            file: tests/e2e/tests/docker-registries.test.ts
           - name: common
-            file: e2e/tests/common.test.ts
+            file: tests/e2e/tests/common.test.ts
           - name: resources
-            file: e2e/tests/resources.test.ts
+            file: tests/e2e/tests/resources.test.ts
     name: e2e (${{ matrix.suite.name }})
     steps:
       - uses: actions/checkout@v4

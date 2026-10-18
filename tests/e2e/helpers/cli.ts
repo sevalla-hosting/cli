@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 
-const CLI_PATH = new URL('../../dist/index.js', import.meta.url).pathname
+const CLI_PATH = new URL('../../../dist/index.js', import.meta.url).pathname
 const API_KEY = process.env.API_KEY
 if (!API_KEY) {
   throw new Error('API_KEY environment variable is required')
@@ -51,4 +51,15 @@ export function sevallaRaw(args: string[], opts?: { env?: Record<string, string>
       })
     })
   })
+}
+
+// For state-dependent calls: success, or an API refusal that isn't auth or schema validation (crashes and timeouts fail)
+export function refusedOnStateOnly(res: CliResult): boolean {
+  if (res.exitCode === 0) return true
+  try {
+    const { error } = JSON.parse(res.stderr) as { error: { status?: number } }
+    return typeof error.status === 'number' && ![401, 403].includes(error.status) && !res.stderr.includes("doesn't match the schema")
+  } catch {
+    return false
+  }
 }

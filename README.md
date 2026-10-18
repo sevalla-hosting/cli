@@ -98,7 +98,7 @@ sevalla apps cdn-toggle <id>
 sevalla apps deployments list --app-id <id>
 sevalla apps deployments get <deployment-id> --app-id <id>
 sevalla apps deployments trigger <app-id> --branch main
-sevalla apps deployments rollback <app-id> --deployment-id <id>
+sevalla apps deployments rollback <app-id>
 sevalla apps deployments cancel <deployment-id> --app-id <id>
 sevalla apps deployments logs <deployment-id> --app-id <id>
 ```
@@ -108,7 +108,7 @@ sevalla apps deployments logs <deployment-id> --app-id <id>
 ```bash
 sevalla apps processes list --app-id <id>
 sevalla apps processes get <process-id> --app-id <id>
-sevalla apps processes create <app-id> --name web --type web
+sevalla apps processes create <app-id> --name web --type web --resource-type <id>
 sevalla apps processes update <process-id> --app-id <id> --instances 3
 sevalla apps processes delete <process-id> --app-id <id>
 sevalla apps processes trigger <process-id> --app-id <id>
@@ -130,7 +130,7 @@ sevalla apps processes metrics instance-count <app-id> <process-id>
 sevalla apps domains list --app-id <id>
 sevalla apps domains add <app-id> --name example.com
 sevalla apps domains get <domain-id> --app-id <id>
-sevalla apps domains update <domain-id> --app-id <id>
+sevalla apps domains update <domain-id> --app-id <id> --name my-app
 sevalla apps domains delete <app-id> <domain-id>
 sevalla apps domains set-primary <app-id> <domain-id>
 sevalla apps domains toggle <app-id> <domain-id>
@@ -170,14 +170,14 @@ sevalla apps metrics top-pages <app-id>
 
 ```bash
 sevalla apps ip-restriction get <app-id>
-sevalla apps ip-restriction update <app-id> --type allow --ip-list "1.2.3.4,5.6.7.8"
+sevalla apps ip-restriction update <app-id> --type allow --ip-list "1.2.3.4,5.6.7.8" --enabled true
 ```
 
 ### TCP Proxies
 
 ```bash
 sevalla apps tcp-proxies list --app-id <id>
-sevalla apps tcp-proxies create <app-id> --port 3000
+sevalla apps tcp-proxies create <app-id> --process-id <id> --port 3000
 sevalla apps tcp-proxies delete <app-id> <tcp-proxy-id>
 ```
 
@@ -185,7 +185,7 @@ sevalla apps tcp-proxies delete <app-id> <tcp-proxy-id>
 
 ```bash
 sevalla apps private-ports list --app-id <id>
-sevalla apps private-ports create <app-id> --port 8080 --protocol TCP
+sevalla apps private-ports create <app-id> --process-id <id> --port 8080
 sevalla apps private-ports delete <app-id> <private-port-id>
 ```
 
@@ -209,14 +209,14 @@ sevalla databases update <id> --display-name "My DB"
 sevalla databases delete <id>
 sevalla databases activate <id>
 sevalla databases suspend <id>
-sevalla databases reset-password <id>
+sevalla databases reset-password <id> --new-password <password>
 ```
 
 ### Database Backups
 
 ```bash
 sevalla databases backups list --db-id <id>
-sevalla databases backups create <db-id>
+sevalla databases backups create <db-id> --name nightly
 sevalla databases backups delete <db-id> <backup-id>
 sevalla databases backups restore <db-id> <backup-id>
 ```
@@ -225,7 +225,7 @@ sevalla databases backups restore <db-id> <backup-id>
 
 ```bash
 sevalla databases connections internal-list --db-id <id>
-sevalla databases connections internal-create <db-id> --application-id <id>
+sevalla databases connections internal-create <db-id> --target-id <app-id>
 sevalla databases connections internal-delete <db-id> <connection-id>
 sevalla databases connections external-toggle <db-id>
 ```
@@ -247,7 +247,7 @@ sevalla databases metrics used-storage <id>
 
 ```bash
 sevalla databases ip-restriction get <db-id>
-sevalla databases ip-restriction update <db-id>
+sevalla databases ip-restriction update <db-id> --type allow --ip-list "1.2.3.4" --enabled true
 ```
 
 ### Static Sites
@@ -277,7 +277,7 @@ sevalla static-sites deployments logs <deployment-id> --site-id <id>
 sevalla static-sites domains list --site-id <id>
 sevalla static-sites domains get <domain-id> --site-id <id>
 sevalla static-sites domains add <site-id> --name example.com
-sevalla static-sites domains update <domain-id> --site-id <id>
+sevalla static-sites domains update <domain-id> --site-id <id> --name my-site
 sevalla static-sites domains delete <site-id> <domain-id>
 sevalla static-sites domains set-primary <site-id> <domain-id>
 sevalla static-sites domains toggle <site-id> <domain-id>
@@ -326,7 +326,7 @@ sevalla load-balancers delete <id>
 
 ```bash
 sevalla load-balancers destinations list --lb-id <id>
-sevalla load-balancers destinations create <lb-id> --application-id <id>
+sevalla load-balancers destinations create <lb-id> --service-type APP --service-id <app-id>
 sevalla load-balancers destinations toggle <lb-id> <destination-id>
 sevalla load-balancers destinations delete <lb-id> <destination-id>
 ```
@@ -337,7 +337,7 @@ sevalla load-balancers destinations delete <lb-id> <destination-id>
 sevalla load-balancers domains list --lb-id <id>
 sevalla load-balancers domains get <domain-id> --lb-id <id>
 sevalla load-balancers domains add <lb-id> --name example.com
-sevalla load-balancers domains update <domain-id> --lb-id <id>
+sevalla load-balancers domains update <domain-id> --lb-id <id> --name my-lb
 sevalla load-balancers domains delete <lb-id> <domain-id>
 sevalla load-balancers domains set-primary <lb-id> <domain-id>
 sevalla load-balancers domains toggle <lb-id> <domain-id>
@@ -365,8 +365,8 @@ sevalla object-storage cdn-domain disable <bucket-id>
 
 ```bash
 sevalla object-storage cors-policies list --bucket-id <id>
-sevalla object-storage cors-policies create <bucket-id>
-sevalla object-storage cors-policies update <policy-id> --bucket-id <id>
+sevalla object-storage cors-policies create <bucket-id> --origins "*" --methods GET,HEAD
+sevalla object-storage cors-policies update <policy-id> --bucket-id <id> --origins "*" --methods GET
 sevalla object-storage cors-policies delete <bucket-id> <policy-id>
 ```
 
@@ -374,7 +374,7 @@ sevalla object-storage cors-policies delete <bucket-id> <policy-id>
 
 ```bash
 sevalla object-storage objects list --bucket-id <id>
-sevalla object-storage objects delete <bucket-id>
+sevalla object-storage objects delete <bucket-id> --keys a.txt,b.txt --confirm
 ```
 
 ### Pipelines
@@ -385,7 +385,7 @@ sevalla pipelines get <id>
 sevalla pipelines create --name mypipeline --type trunk
 sevalla pipelines update <id> --name "My Pipeline"
 sevalla pipelines delete <id>
-sevalla pipelines promote <id>
+sevalla pipelines promote <id> --source-app-id <id> --target-app-ids <id>,<id>
 ```
 
 ### Pipeline Stages
@@ -402,7 +402,7 @@ sevalla pipelines stages apps remove <pipeline-id> <stage-id> <app-id>
 ```bash
 sevalla pipelines preview enable <pipeline-id>
 sevalla pipelines preview disable <pipeline-id>
-sevalla pipelines preview update <pipeline-id>
+sevalla pipelines preview update <pipeline-id> --auto-create-app true
 ```
 
 ### Projects
@@ -413,7 +413,7 @@ sevalla projects get <id>
 sevalla projects create --name myproject
 sevalla projects update <id> --name "My Project"
 sevalla projects delete <id>
-sevalla projects services add <project-id>
+sevalla projects services add <project-id> --service-id <id>
 sevalla projects services remove <project-id> <service-id>
 ```
 

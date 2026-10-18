@@ -10,4 +10,5 @@ export const objectsListCommand = makeListCommand({
   ],
   apiCall: (client, opts) => client.get(`/object-storage/${opts['bucketId']}/objects`),
   parentIdFlag: { name: 'bucket-id', description: 'Bucket ID' },
+  paginated: false,
 });

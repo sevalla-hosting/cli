@@ -9,4 +9,5 @@ export const resourcesClustersCommand = makeListCommand({
     { header: 'Location', key: 'location' },
   ],
   apiCall: (client) => client.get('/resources/clusters'),
+  paginated: false,
 });

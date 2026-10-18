@@ -6,7 +6,7 @@ export const backupsRestoreCommand = makeSubResourceActionCommand({
   parentIdName: 'db-id',
   childIdName: 'backup-id',
   apiCall: (client, parentId, childId) =>
-    client.post(`/databases/${parentId}/backups/${childId}/restore`),
+    client.post(`/databases/${parentId}/backups/${childId}/restore`, {}),
   successMessage: 'Database backup restored.',
   spinnerText: 'Restoring backup...',
 });

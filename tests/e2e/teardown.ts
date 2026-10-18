@@ -7,7 +7,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 type ListItem = { id: string; display_name?: string; name?: string }
 
 async function cancelStaticSiteDeployments(siteId: string) {
-  const nonTerminal = ['queued', 'pending', 'building', 'built', 'deploying', 'rolling_out', 'in_progress']
+  const nonTerminal = ['waiting', 'inProgress']
   const res = await sevalla(['static-sites', 'deployments', 'list', '--site-id', siteId])
   if (res.exitCode !== 0) return
   const deps = res.json<{ id: string; status?: string | null }[]>()

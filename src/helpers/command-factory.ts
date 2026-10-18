@@ -50,6 +50,8 @@ export interface ListCommandConfig<T> {
     opts: Record<string, unknown>,
   ) => Promise<PaginatedResponse<T> | T[]>;
   parentIdFlag?: { name: string; description: string };
+  // false for endpoints that don't accept limit/offset
+  paginated?: boolean;
 }
 
 export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
@@ -60,8 +62,10 @@ export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
     cmd.requiredOption(`--${config.parentIdFlag.name} <id>`, config.parentIdFlag.description);
   }
 
-  for (const opt of paginationOptions()) {
-    cmd.addOption(opt);
+  if (config.paginated !== false) {
+    for (const opt of paginationOptions()) {
+      cmd.addOption(opt);
+    }
   }
 
   cmd.action(async (opts: Record<string, unknown>) => {
@@ -78,10 +82,8 @@ export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
       // Convert page/perPage to limit/offset for the API
       const perPage = opts['perPage'] as number;
       const page = opts['page'] as number;
-      const paginationQuery: QueryParams = {
-        limit: perPage,
-        offset: (page - 1) * perPage,
-      };
+      const paginationQuery: QueryParams =
+        config.paginated === false ? {} : { limit: perPage, offset: (page - 1) * perPage };
 
       // Wrap client so apiCall's GET requests include pagination automatically
       const paginatedClient = new Proxy(client, {

@@ -1,7 +1,7 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla } from '../helpers/cli.ts'
-import { safeDeleteApp, safeDelete } from '../helpers/cleanup.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
+import { safeDeleteApp, safeDelete, cancelAppDeployments } from '../helpers/cleanup.ts'
 
 interface Cluster {
   id: string
@@ -34,6 +34,7 @@ describe('application deployments and processes', () => {
   let clusterId: string
   let createdProjectId: string | undefined
   let createdAppId: string | undefined
+  let workerProcessId: string | undefined
 
   before(async () => {
     // Get a cluster ID
@@ -135,6 +136,14 @@ describe('application deployments and processes', () => {
     assert.equal(res.exitCode, 0, `apps deployments cancel failed: ${res.stderr}`)
   })
 
+  it('should send a rollback request the API accepts', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    // No deployment has succeeded yet, so the API may refuse on state, but never on request shape
+    const res = await sevalla(['apps', 'deployments', 'rollback', createdAppId], { timeout: 120_000 })
+    assert.ok(refusedOnStateOnly(res), `apps deployments rollback failed on request shape, auth or crash: ${res.stderr}`)
+  })
+
   // --- Processes ---
 
   it('should list processes', async () => {
@@ -163,5 +172,100 @@ describe('application deployments and processes', () => {
     assert.equal(res.exitCode, 0, `apps processes get failed: ${res.stderr}`)
     const proc = res.json<Process>()
     assert.equal(proc.id, processId, 'returned process id should match')
+  })
+
+  it('should create a worker process', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const typesRes = await sevalla(['resources', 'process-types'])
+    assert.equal(typesRes.exitCode, 0, `resources process-types failed: ${typesRes.stderr}`)
+    const types = typesRes.json<{ id: string }[]>()
+    assert.ok(types.length > 0, 'at least one process resource type must exist')
+
+    const res = await sevalla([
+      'apps', 'processes', 'create', createdAppId,
+      '--name', `e2e-worker-${ts}`,
+      '--type', 'worker',
+      '--resource-type', (types[0] as { id: string }).id,
+      '--command', 'sleep infinity',
+    ])
+    assert.equal(res.exitCode, 0, `apps processes create failed: ${res.stderr}`)
+    const proc = res.json<Process>()
+    assert.ok(proc.id, 'created process should have an id')
+    workerProcessId = proc.id
+  })
+
+  it('should update a process', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(workerProcessId, 'workerProcessId must be set from create test')
+
+    const res = await sevalla([
+      'apps', 'processes', 'update', workerProcessId,
+      '--app-id', createdAppId,
+      '--name', `e2e-worker-updated-${ts}`,
+      '--command', 'sleep 3600',
+      '--instances', '2',
+    ])
+    assert.equal(res.exitCode, 0, `apps processes update failed: ${res.stderr}`)
+  })
+
+  it('should get process metrics', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(workerProcessId, 'workerProcessId must be set from create test')
+
+    for (const metric of ['cpu-usage', 'cpu-limit', 'memory-usage', 'memory-limit', 'instance-count']) {
+      const res = await sevalla(['apps', 'processes', 'metrics', metric, createdAppId, workerProcessId])
+      assert.equal(res.exitCode, 0, `apps processes metrics ${metric} failed: ${res.stderr}`)
+      assert.ok(Array.isArray(res.json()), `${metric} should return an array`)
+    }
+  })
+
+  it('should create and delete a TCP proxy', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(workerProcessId, 'workerProcessId must be set from create test')
+
+    const res = await sevalla([
+      'apps', 'tcp-proxies', 'create', createdAppId,
+      '--process-id', workerProcessId,
+      '--port', '6379',
+    ])
+    assert.equal(res.exitCode, 0, `apps tcp-proxies create failed: ${res.stderr}`)
+    const proxy = res.json<{ id: string }>()
+    assert.ok(proxy.id, 'created TCP proxy should have an id')
+
+    const delRes = await sevalla(['apps', 'tcp-proxies', 'delete', createdAppId, proxy.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `apps tcp-proxies delete failed: ${delRes.stderr}`)
+  })
+
+  it('should create and delete a private port', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(workerProcessId, 'workerProcessId must be set from create test')
+
+    const res = await sevalla([
+      'apps', 'private-ports', 'create', createdAppId,
+      '--process-id', workerProcessId,
+      '--port', '8081',
+    ])
+    assert.equal(res.exitCode, 0, `apps private-ports create failed: ${res.stderr}`)
+    const port = res.json<{ id: string }>()
+    assert.ok(port.id, 'created private port should have an id')
+
+    const delRes = await sevalla(['apps', 'private-ports', 'delete', createdAppId, port.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `apps private-ports delete failed: ${delRes.stderr}`)
+  })
+
+  it('should delete a process', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(workerProcessId, 'workerProcessId must be set from create test')
+
+    // Process changes start a deployment, and the API refuses to delete while one is running
+    let res = await sevalla(['apps', 'processes', 'delete', workerProcessId, '--app-id', createdAppId, '--confirm'])
+    for (let attempt = 0; attempt < 10 && res.exitCode !== 0; attempt++) {
+      await cancelAppDeployments(createdAppId)
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+      res = await sevalla(['apps', 'processes', 'delete', workerProcessId, '--app-id', createdAppId, '--confirm'])
+    }
+    assert.equal(res.exitCode, 0, `apps processes delete failed: ${res.stderr}`)
+    workerProcessId = undefined
   })
 })

@@ -11,4 +11,5 @@ export const corsPoliciesListCommand = makeListCommand({
   ],
   apiCall: (client, opts) => client.get(`/object-storage/${opts['bucketId']}/cors-policies`),
   parentIdFlag: { name: 'bucket-id', description: 'Bucket ID' },
+  paginated: false,
 });

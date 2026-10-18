@@ -10,4 +10,5 @@ export const backupsListCommand = makeListCommand({
     { header: 'Created At', key: 'created_at' },
   ],
   apiCall: (client, opts) => client.get(`/databases/${opts['dbId']}/backups`),
+  paginated: false,
 });

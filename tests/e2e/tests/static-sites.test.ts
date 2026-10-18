@@ -1,13 +1,13 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'static-sites'
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function cancelActiveDeployments(siteId: string) {
-  const nonTerminal = ['queued', 'pending', 'building', 'built', 'deploying', 'rolling_out', 'in_progress']
+  const nonTerminal = ['waiting', 'inProgress']
   for (let attempt = 0; attempt < 10; attempt++) {
     const res = await sevalla([RESOURCE, 'deployments', 'list', '--site-id', siteId])
     if (res.exitCode !== 0) return
@@ -108,6 +108,33 @@ describe(RESOURCE, () => {
     const res = await sevalla([RESOURCE, 'domains', 'list', '--site-id', createdId])
     assert.equal(res.exitCode, 0, `domains list failed: ${res.stderr}`)
     assert.ok(Array.isArray(res.json<unknown[]>()))
+  })
+
+  it('should add and delete a custom domain', async () => {
+    assert.ok(createdId, 'No static site was created')
+    const res = await sevalla([RESOURCE, 'domains', 'add', createdId, '--name', `e2e-ss-${Date.now()}.sevalla.com`])
+    assert.equal(res.exitCode, 0, `domains add failed: ${res.stderr}`)
+    const domain = res.json<{ id: string }>()
+    assert.ok(domain.id)
+
+    const delRes = await sevalla([RESOURCE, 'domains', 'delete', createdId, domain.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `domains delete failed: ${delRes.stderr}`)
+  })
+
+  it('should rename the system domain', async () => {
+    assert.ok(createdId, 'No static site was created')
+    const listRes = await sevalla([RESOURCE, 'domains', 'list', '--site-id', createdId])
+    assert.equal(listRes.exitCode, 0, `domains list failed: ${listRes.stderr}`)
+    const system = listRes.json<{ id: string; type: string }[]>().find((d) => d.type === 'SYSTEM')
+    assert.ok(system, 'static site should have a system domain')
+
+    const res = await sevalla([
+      RESOURCE, 'domains', 'update', system.id,
+      '--site-id', createdId,
+      '--name', `e2e-ss-${Date.now()}`,
+    ])
+    // System domain renames can be refused for environment reasons, so only the request shape is asserted
+    assert.ok(refusedOnStateOnly(res), `domains update failed on request shape, auth or crash: ${res.stderr}`)
   })
 
   // ---------------------------------------------------------------------------

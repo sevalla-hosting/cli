@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { sevalla } from '../helpers/cli.ts'
+import { sevalla, refusedOnStateOnly } from '../helpers/cli.ts'
 import { safeDelete } from '../helpers/cleanup.ts'
 
 const RESOURCE = 'load-balancers'
@@ -86,6 +86,33 @@ describe(RESOURCE, () => {
     assert.ok(Array.isArray(data))
   })
 
+  it('should add and delete a custom domain', async () => {
+    assert.ok(createdId, 'No LB was created')
+    const res = await sevalla([RESOURCE, 'domains', 'add', createdId, '--name', `e2e-lb-${Date.now()}.sevalla.com`])
+    // Custom domains can be refused for account or environment reasons, so only the request shape is asserted
+    assert.ok(refusedOnStateOnly(res), `domains add failed on request shape, auth or crash: ${res.stderr}`)
+    if (res.exitCode !== 0) return
+
+    const domain = res.json<{ id: string }>()
+    const delRes = await sevalla([RESOURCE, 'domains', 'delete', createdId, domain.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `domains delete failed: ${delRes.stderr}`)
+  })
+
+  it('should rename the system domain', async () => {
+    assert.ok(createdId, 'No LB was created')
+    const listRes = await sevalla([RESOURCE, 'domains', 'list', '--lb-id', createdId])
+    assert.equal(listRes.exitCode, 0, `domains list failed: ${listRes.stderr}`)
+    const system = listRes.json<{ id: string; type: string }[]>().find((d) => d.type === 'SYSTEM')
+    assert.ok(system, 'LB should have a system domain')
+
+    const res = await sevalla([
+      RESOURCE, 'domains', 'update', system.id,
+      '--lb-id', createdId,
+      '--name', `e2e-lb-${Date.now()}`,
+    ])
+    assert.equal(res.exitCode, 0, `domains update failed: ${res.stderr}`)
+  })
+
   // ---------------------------------------------------------------------------
   // Destinations
   // ---------------------------------------------------------------------------
@@ -95,6 +122,22 @@ describe(RESOURCE, () => {
     assert.equal(res.exitCode, 0, `destinations list failed: ${res.stderr}`)
     const data = res.json<unknown[]>()
     assert.ok(Array.isArray(data))
+  })
+
+  it('should create and delete an external destination', async () => {
+    assert.ok(createdId, 'No LB was created')
+    const res = await sevalla([
+      RESOURCE, 'destinations', 'create', createdId,
+      '--service-type', 'EXTERNAL',
+      '--url', 'https://example.com',
+      '--weight', '10',
+    ])
+    assert.equal(res.exitCode, 0, `destinations create failed: ${res.stderr}`)
+    const destination = res.json<{ id: string }>()
+    assert.ok(destination.id)
+
+    const delRes = await sevalla([RESOURCE, 'destinations', 'delete', createdId, destination.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `destinations delete failed: ${delRes.stderr}`)
   })
 
   // ---------------------------------------------------------------------------

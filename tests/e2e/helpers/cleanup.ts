@@ -2,8 +2,8 @@ import { sevalla } from './cli.ts'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-async function cancelAppDeployments(id: string): Promise<void> {
-  const nonTerminal = ['queued', 'pending', 'building', 'built', 'deploying', 'rolling_out', 'in_progress']
+export async function cancelAppDeployments(id: string): Promise<void> {
+  const nonTerminal = ['waiting', 'inProgress']
   const deploymentsRes = await sevalla(['apps', 'deployments', 'list', '--app-id', id])
   if (deploymentsRes.exitCode !== 0) return
   try {
