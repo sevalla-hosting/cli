@@ -5,13 +5,13 @@ export const privatePortsCreateCommand = makeActionCommand({
   description: 'Create a private port',
   idArg: 'app-id',
   options: [
+    { flags: '--process-id <id>', description: 'Process ID', required: true },
     { flags: '--port <port>', description: 'Port number', required: true },
-    { flags: '--protocol <protocol>', description: 'Protocol (TCP/UDP)' },
   ],
-  apiCall: (client, id, opts) => {
-    const body: Record<string, unknown> = { port: Number(opts['port']) };
-    if (opts['protocol']) body['protocol'] = opts['protocol'];
-    return client.post(`/applications/${id}/private-ports`, body);
-  },
+  apiCall: (client, id, opts) =>
+    client.post(`/applications/${id}/private-ports`, {
+      process_id: opts['processId'],
+      port: Number(opts['port']),
+    }),
   successMessage: 'Private port created.',
 });

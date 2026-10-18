@@ -9,13 +9,16 @@ export const domainsUpdateCommand = new Command('update')
   .description('Update static site system domain')
   .requiredOption('--site-id <id>', 'Static site ID')
   .argument('<domain-id>', 'Domain ID')
+  .requiredOption('--name <name>', 'New subdomain name for the system domain')
   .addOption(jsonOption())
   .action(async (domainId: string, opts: Record<string, unknown>) => {
     const client = createClient({ apiUrl: opts['apiUrl'] as string | undefined });
     const json = resolveJsonMode(opts);
     try {
       if (!json) startSpinner('Updating...');
-      const result = await client.patch(`/static-sites/${opts['siteId']}/domains/${domainId}`);
+      const result = await client.patch(`/static-sites/${opts['siteId']}/domains/${domainId}`, {
+        name: opts['name'],
+      });
       stopSpinner();
       if (json) {
         printJson(result);

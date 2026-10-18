@@ -5,6 +5,8 @@ export const cpuUsageCommand = makeMetricsCommand({
   description: 'Get process CPU usage metrics',
   label: 'CPU Usage',
   parentIds: ['app-id', 'process-id'],
-  apiCall: (client, compositeId, query) =>
-    client.get(`/applications/${compositeId}/metrics/cpu-usage`, query),
+  apiCall: (client, compositeId, query) => {
+    const [appId, processId] = compositeId.split('/');
+    return client.get(`/applications/${appId}/processes/${processId}/metrics/cpu-usage`, query);
+  },
 });

@@ -9,4 +9,5 @@ export const gitProvidersCommand = makeListCommand({
     { header: 'Type', key: 'type' },
   ],
   apiCall: (client) => client.get('/git/providers'),
+  paginated: false,
 });

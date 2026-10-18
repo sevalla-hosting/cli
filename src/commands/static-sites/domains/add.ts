@@ -5,6 +5,7 @@ export const domainsAddCommand = makeActionCommand({
   description: 'Add a domain to a static site',
   idArg: 'site-id',
   options: [{ flags: '--name <name>', description: 'Domain name', required: true }],
-  apiCall: (client, id, opts) => client.post(`/static-sites/${id}/domains`, { name: opts['name'] }),
+  apiCall: (client, id, opts) =>
+    client.post(`/static-sites/${id}/domains`, { domain_name: opts['name'] }),
   successMessage: 'Domain added.',
 });

@@ -5,6 +5,8 @@ export const memoryUsageCommand = makeMetricsCommand({
   description: 'Get process memory usage metrics',
   label: 'Memory Usage',
   parentIds: ['app-id', 'process-id'],
-  apiCall: (client, compositeId, query) =>
-    client.get(`/applications/${compositeId}/metrics/memory-usage`, query),
+  apiCall: (client, compositeId, query) => {
+    const [appId, processId] = compositeId.split('/');
+    return client.get(`/applications/${appId}/processes/${processId}/metrics/memory-usage`, query);
+  },
 });

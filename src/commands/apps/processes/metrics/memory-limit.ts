@@ -5,6 +5,8 @@ export const memoryLimitCommand = makeMetricsCommand({
   description: 'Get process memory limit metrics',
   label: 'Memory Limit',
   parentIds: ['app-id', 'process-id'],
-  apiCall: (client, compositeId, query) =>
-    client.get(`/applications/${compositeId}/metrics/memory-limit`, query),
+  apiCall: (client, compositeId, query) => {
+    const [appId, processId] = compositeId.split('/');
+    return client.get(`/applications/${appId}/processes/${processId}/metrics/memory-limit`, query);
+  },
 });

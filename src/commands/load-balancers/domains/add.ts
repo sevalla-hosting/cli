@@ -6,6 +6,6 @@ export const domainsAddCommand = makeActionCommand({
   idArg: 'lb-id',
   options: [{ flags: '--name <name>', description: 'Domain name', required: true }],
   apiCall: (client, id, opts) =>
-    client.post(`/load-balancers/${id}/domains`, { name: opts['name'] }),
+    client.post(`/load-balancers/${id}/domains`, { domain_name: opts['name'] }),
   successMessage: 'Domain added.',
 });

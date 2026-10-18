@@ -10,4 +10,5 @@ export const usersListCommand = makeListCommand({
     { header: 'Role', key: 'role' },
   ],
   apiCall: (client) => client.get('/users'),
+  paginated: false,
 });

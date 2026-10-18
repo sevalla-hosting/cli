@@ -48,4 +48,20 @@ describe('resources', () => {
       assert.ok(typeof procType.name === 'string', 'procType.name should be a string')
     }
   })
+
+  // ---------------------------------------------------------------------------
+  // Non-paginated lists (endpoints without limit/offset)
+  // ---------------------------------------------------------------------------
+  for (const args of [
+    ['resources', 'rbac-permissions'],
+    ['resources', 'rbac-roles'],
+    ['users', 'list'],
+    ['git', 'providers'],
+  ]) {
+    it(`sevalla ${args.join(' ')} should return a list`, async () => {
+      const res = await sevalla(args)
+      assert.equal(res.exitCode, 0, `${args.join(' ')} failed: ${res.stderr}`)
+      assert.ok(Array.isArray(res.json()), 'expected an array')
+    })
+  }
 })

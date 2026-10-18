@@ -33,6 +33,7 @@ interface Domain {
   name?: string
   status?: string
   is_primary?: boolean
+  type?: string
   [key: string]: unknown
 }
 
@@ -176,6 +177,34 @@ describe('application settings', () => {
 
     const domains = res.json<Domain[]>()
     assert.ok(Array.isArray(domains), 'domains response should be an array')
+  })
+
+  it('should add and delete a custom domain', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const res = await sevalla(['apps', 'domains', 'add', appId, '--name', `e2e-${ts}.sevalla-cli-e2e.dev`])
+    assert.equal(res.exitCode, 0, `domains add failed: ${res.stderr}`)
+    const domain = res.json<Domain>()
+    assert.ok(domain.id, 'added domain should have an id')
+
+    const delRes = await sevalla(['apps', 'domains', 'delete', appId, domain.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `domains delete failed: ${delRes.stderr}`)
+  })
+
+  it('should rename the system domain', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const listRes = await sevalla(['apps', 'domains', 'list', '--app-id', appId])
+    assert.equal(listRes.exitCode, 0, `domains list failed: ${listRes.stderr}`)
+    const system = listRes.json<Domain[]>().find((d) => d.type === 'SYSTEM')
+    assert.ok(system, 'app should have a system domain')
+
+    const res = await sevalla([
+      'apps', 'domains', 'update', system.id,
+      '--app-id', appId,
+      '--name', `e2e-app-${ts}`,
+    ])
+    assert.equal(res.exitCode, 0, `domains update failed: ${res.stderr}`)
   })
 
   // Logs

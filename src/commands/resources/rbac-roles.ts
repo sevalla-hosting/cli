@@ -9,4 +9,5 @@ export const resourcesRbacRolesCommand = makeListCommand({
     { header: 'Description', key: 'description' },
   ],
   apiCall: (client) => client.get('/resources/rbac/api-key-roles'),
+  paginated: false,
 });

@@ -11,7 +11,7 @@ export const processesUpdateCommand = new Command('update')
   .argument('<process-id>', 'Process ID')
   .option('--name <name>', 'Process name')
   .option('--command <command>', 'Start command')
-  .option('--resource-type <type>', 'Resource type')
+  .option('--resource-type <id>', 'Process resource type ID')
   .option('--instances <count>', 'Instance count')
   .addOption(jsonOption())
   .action(async (processId: string, opts: Record<string, unknown>) => {
@@ -19,10 +19,14 @@ export const processesUpdateCommand = new Command('update')
     const json = resolveJsonMode(opts);
     try {
       const body: Record<string, unknown> = {};
-      if (opts['name']) body['name'] = opts['name'];
-      if (opts['command']) body['command'] = opts['command'];
-      if (opts['resourceType']) body['resource_type'] = opts['resourceType'];
-      if (opts['instances']) body['instances'] = Number(opts['instances']);
+      if (opts['name']) body['display_name'] = opts['name'];
+      if (opts['command']) body['entrypoint'] = opts['command'];
+      if (opts['resourceType']) body['resource_type_id'] = opts['resourceType'];
+      if (opts['instances'])
+        body['scaling_strategy'] = {
+          type: 'manual',
+          config: { instanceCount: Number(opts['instances']) },
+        };
       if (!json) startSpinner('Updating...');
       const result = await client.patch(
         `/applications/${opts['appId']}/processes/${processId}`,

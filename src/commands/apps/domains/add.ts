@@ -5,6 +5,7 @@ export const domainsAddCommand = makeActionCommand({
   description: 'Add a domain to an application',
   idArg: 'app-id',
   options: [{ flags: '--name <name>', description: 'Domain name', required: true }],
-  apiCall: (client, id, opts) => client.post(`/applications/${id}/domains`, { name: opts['name'] }),
+  apiCall: (client, id, opts) =>
+    client.post(`/applications/${id}/domains`, { domain_name: opts['name'] }),
   successMessage: 'Domain added.',
 });

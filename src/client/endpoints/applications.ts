@@ -5,7 +5,7 @@ import type { QueryParams } from '../types.ts';
 // Path prefix
 // ---------------------------------------------------------------------------
 
-const BASE = '/v3/applications';
+const BASE = '/applications';
 
 // ---------------------------------------------------------------------------
 // Query helpers

@@ -89,6 +89,12 @@ describe(RESOURCE, () => {
     }
   })
 
+  it('should delete objects by key', async () => {
+    assert.ok(bucketId, 'No bucket was created')
+    const res = await sevalla([RESOURCE, 'objects', 'delete', bucketId, '--keys', 'e2e-a.txt,e2e-b.txt'])
+    assert.equal(res.exitCode, 0, `objects delete failed: ${res.stderr}`)
+  })
+
   // ---------------------------------------------------------------------------
   // CORS Policies
   // ---------------------------------------------------------------------------
@@ -117,6 +123,19 @@ describe(RESOURCE, () => {
     assert.equal(res.exitCode, 0, `cors-policies list failed: ${res.stderr}`)
     const policies = res.json<unknown[]>()
     assert.ok(Array.isArray(policies))
+  })
+
+  it('should update a CORS policy', async () => {
+    assert.ok(bucketId, 'No bucket was created')
+    assert.ok(corsPolicyId, 'No CORS policy was created')
+    const res = await sevalla([
+      RESOURCE, 'cors-policies', 'update', corsPolicyId,
+      '--bucket-id', bucketId,
+      '--origins', 'https://example.com,https://example.org',
+      '--methods', 'GET,HEAD',
+      '--headers', 'Content-Type',
+    ])
+    assert.equal(res.exitCode, 0, `cors-policies update failed: ${res.stderr}`)
   })
 
   it('should delete a CORS policy', async () => {

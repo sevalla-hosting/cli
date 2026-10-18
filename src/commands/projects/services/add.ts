@@ -5,10 +5,10 @@ export const servicesAddCommand = makeActionCommand({
   description: 'Add a service to a project',
   idArg: 'project-id',
   options: [
-    { flags: '--service-id <id>', description: 'Service ID' },
+    { flags: '--service-id <id>', description: 'Service ID', required: true },
     {
       flags: '--service-type <type>',
-      description: 'Service type (e.g. app, database, static-site)',
+      description: 'Service type: app, database, pipeline or object-storage (default: app)',
     },
   ],
   apiCall: (client, id, opts) =>

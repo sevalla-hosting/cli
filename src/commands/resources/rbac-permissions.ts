@@ -11,4 +11,5 @@ export const resourcesRbacPermissionsCommand = makeListCommand({
     { header: 'Description', key: 'description' },
   ],
   apiCall: (client) => client.get('/resources/rbac/api-key-permissions'),
+  paginated: false,
 });

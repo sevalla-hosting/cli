@@ -8,4 +8,5 @@ export const resourcesDbTypesCommand = makeListCommand({
     { header: 'Name', key: 'name' },
   ],
   apiCall: (client) => client.get('/resources/database-resource-types'),
+  paginated: false,
 });

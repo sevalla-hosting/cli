@@ -9,18 +9,22 @@ export const corsPoliciesUpdateCommand = new Command('update')
   .description('Update a CORS policy')
   .requiredOption('--bucket-id <id>', 'Bucket ID')
   .argument('<policy-id>', 'CORS policy ID')
-  .option('--origins <origins>', 'Allowed origins')
-  .option('--methods <methods>', 'Allowed methods')
-  .option('--headers <headers>', 'Allowed headers')
+  .requiredOption('--origins <origins>', 'Comma-separated allowed origins')
+  .requiredOption(
+    '--methods <methods>',
+    'Comma-separated allowed methods (GET, PUT, POST, DELETE, HEAD)',
+  )
+  .option('--headers <headers>', 'Comma-separated allowed headers')
   .addOption(jsonOption())
   .action(async (policyId: string, opts: Record<string, unknown>) => {
     const client = createClient({ apiUrl: opts['apiUrl'] as string | undefined });
     const json = resolveJsonMode(opts);
     try {
-      const body: Record<string, unknown> = {};
-      if (opts['origins']) body['origins'] = opts['origins'];
-      if (opts['methods']) body['methods'] = opts['methods'];
-      if (opts['headers']) body['headers'] = opts['headers'];
+      const body: Record<string, unknown> = {
+        origins: (opts['origins'] as string).split(','),
+        methods: (opts['methods'] as string).split(','),
+      };
+      if (opts['headers']) body['headers'] = (opts['headers'] as string).split(',');
       if (!json) startSpinner('Updating...');
       const result = await client.patch(
         `/object-storage/${opts['bucketId']}/cors-policies/${policyId}`,
