@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/sevalla-hosting/cli/compare/v1.10.0...v1.10.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* align CLI requests with the v3 OpenAPI spec ([#9](https://github.com/sevalla-hosting/cli/issues/9)) ([32b8290](https://github.com/sevalla-hosting/cli/commit/32b82906b0e25497c8160802b2df5684402f2cf4)), closes [#8](https://github.com/sevalla-hosting/cli/issues/8)
+
 # [1.10.0](https://github.com/sevalla-hosting/cli/compare/v1.9.0...v1.10.0) (2026-05-28)
 
 
