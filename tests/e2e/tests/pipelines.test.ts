@@ -226,9 +226,9 @@ describe(RESOURCE, () => {
     ], { timeout: 60_000 })
     assert.equal(res.exitCode, 0, `preview create-app failed: ${res.stderr}`)
     const app = res.json<{ id: string; default_branch: string }>()
+    previewAppId = app.id
     assert.ok(app.id, 'created preview app should have an id')
     assert.equal(app.default_branch, 'main')
-    previewAppId = app.id
   })
 
   it('should disable pipeline preview', async () => {

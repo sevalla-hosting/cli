@@ -56,4 +56,13 @@ describe('Preview app body', () => {
       pull_request_number: 42,
     });
   });
+
+  it('should reject a pull request that is not a positive whole number', () => {
+    for (const pullRequest of ['PR-42', 'https://github.com/a/b/pull/42', '0', '4.2']) {
+      assert.throws(
+        () => previewAppBody({ branch: 'main', pullRequest }),
+        /--pull-request must be a pull request number/,
+      );
+    }
+  });
 });

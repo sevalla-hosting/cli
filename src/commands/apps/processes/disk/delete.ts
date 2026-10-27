@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { createClient } from '../../../../client/api-client.ts';
 import { handleError } from '../../../../errors/handler.ts';
 import { jsonOption, resolveJsonMode, confirmOption } from '../../../../helpers/flags.ts';
+import { validateId } from '../../../../helpers/validate.ts';
 import { printJson, printSuccess } from '../../../../output/formatter.ts';
 import { startSpinner, stopSpinner } from '../../../../output/spinner.ts';
 
@@ -19,6 +20,8 @@ export const processDiskDeleteCommand = new Command('delete')
       process.exit(1);
     }
     try {
+      validateId(processId, 'process-id');
+      validateId(opts['appId'] as string, 'app-id');
       if (!json) startSpinner('Deleting...');
       await client.delete(`/applications/${opts['appId']}/processes/${processId}/disk`);
       stopSpinner();

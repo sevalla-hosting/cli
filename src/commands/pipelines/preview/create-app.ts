@@ -1,8 +1,15 @@
 import { makeActionCommand } from '../../../helpers/command-factory.ts';
+import { SevallaCliError } from '../../../errors/cli-error.ts';
 
 export function previewAppBody(opts: Record<string, unknown>): Record<string, unknown> {
   const body: Record<string, unknown> = { branch: opts['branch'] };
-  if (opts['pullRequest'] !== undefined) body['pull_request_number'] = Number(opts['pullRequest']);
+  if (opts['pullRequest'] !== undefined) {
+    const pullRequest = Number(opts['pullRequest']);
+    if (!Number.isInteger(pullRequest) || pullRequest < 1) {
+      throw new SevallaCliError('--pull-request must be a pull request number.');
+    }
+    body['pull_request_number'] = pullRequest;
+  }
   return body;
 }
 

@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { createClient } from '../../../../client/api-client.ts';
 import { handleError } from '../../../../errors/handler.ts';
 import { jsonOption, resolveJsonMode } from '../../../../helpers/flags.ts';
+import { validateId } from '../../../../helpers/validate.ts';
 import { printJson, printResource, printSuccess } from '../../../../output/formatter.ts';
 import { startSpinner, stopSpinner } from '../../../../output/spinner.ts';
 
@@ -19,6 +20,8 @@ export const processDiskUpdateCommand = new Command('update')
     const client = createClient({ apiUrl: opts['apiUrl'] as string | undefined });
     const json = resolveJsonMode(opts);
     try {
+      validateId(processId, 'process-id');
+      validateId(opts['appId'] as string, 'app-id');
       if (!json) startSpinner('Updating...');
       const result = await client.put<Record<string, unknown>>(
         `/applications/${opts['appId']}/processes/${processId}/disk`,
