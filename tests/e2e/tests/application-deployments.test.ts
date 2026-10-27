@@ -184,7 +184,7 @@ describe('application deployments and processes', () => {
 
     const typesRes = await sevalla(['resources', 'disk-types'])
     assert.equal(typesRes.exitCode, 0, `resources disk-types failed: ${typesRes.stderr}`)
-    const [smallest, larger] = typesRes.json<{ id: string; size_gib: number }[]>()
+    const [smallest, larger] = typesRes.json<{ id: string; size_gib: number }[]>().sort((a, b) => a.size_gib - b.size_gib)
     assert.ok(smallest, 'at least one disk resource type must exist')
 
     const attachRes = await sevalla([
