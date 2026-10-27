@@ -6,6 +6,7 @@ import { processesUpdateCommand } from './update.ts';
 import { processesDeleteCommand } from './delete.ts';
 import { processesTriggerCommand } from './trigger.ts';
 import { makeProcessMetricsCommands } from './metrics/index.ts';
+import { makeProcessDiskCommands } from './disk/index.ts';
 
 export function makeProcessesCommands(): Command {
   const cmd = new Command('processes').description('Manage application processes');
@@ -16,5 +17,6 @@ export function makeProcessesCommands(): Command {
   cmd.addCommand(processesDeleteCommand);
   cmd.addCommand(processesTriggerCommand);
   cmd.addCommand(makeProcessMetricsCommands());
+  cmd.addCommand(makeProcessDiskCommands());
   return cmd;
 }

@@ -50,6 +50,21 @@ describe('resources', () => {
   })
 
   // ---------------------------------------------------------------------------
+  // List disk resource types
+  // ---------------------------------------------------------------------------
+  it('sevalla resources disk-types should return the disk sizes', async () => {
+    const res = await sevalla(['resources', 'disk-types'])
+    assert.equal(res.exitCode, 0, `resources disk-types failed: ${res.stderr}`)
+    const body = res.json<Array<{ id: string; name: string; size_gib: number }>>()
+    assert.ok(Array.isArray(body), 'expected an array of disk types')
+    assert.ok(body.length > 0, 'expected at least one disk resource type')
+    for (const diskType of body) {
+      assert.ok(typeof diskType.id === 'string', 'diskType.id should be a string')
+      assert.ok(typeof diskType.size_gib === 'number', 'diskType.size_gib should be a number')
+    }
+  })
+
+  // ---------------------------------------------------------------------------
   // Non-paginated lists (endpoints without limit/offset)
   // ---------------------------------------------------------------------------
   for (const args of [

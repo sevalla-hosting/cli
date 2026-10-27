@@ -11,6 +11,7 @@ describe(RESOURCE, () => {
   let clusterId: string
   let stageId: string | undefined
   let appId: string | undefined
+  let previewAppId: string | undefined
 
   before(async () => {
     const projName = `e2e-pipe-proj-${Date.now()}`
@@ -26,6 +27,9 @@ describe(RESOURCE, () => {
   })
 
   after(async () => {
+    if (previewAppId) {
+      await safeDeleteApp(previewAppId)
+    }
     if (appId) {
       await safeDeleteApp(appId)
     }
@@ -184,6 +188,47 @@ describe(RESOURCE, () => {
       '--stale-app-days', '7',
     ], { timeout: 60_000 })
     assert.equal(res.exitCode, 0, `preview update failed: ${res.stderr}`)
+  })
+
+  it('should set the preview app settings', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    const typesRes = await sevalla(['resources', 'process-types'])
+    assert.equal(typesRes.exitCode, 0, `resources process-types failed: ${typesRes.stderr}`)
+    const [resourceType] = typesRes.json<{ id: string }[]>()
+    assert.ok(resourceType, 'at least one process resource type must exist')
+
+    const previewApp = {
+      cluster_id: clusterId,
+      build_type: 'nixpacks',
+      processes: [
+        {
+          display_name: 'web',
+          type: 'web',
+          port: 8080,
+          resource_type_id: resourceType.id,
+          scaling_strategy: { type: 'manual', config: { instanceCount: 1 } },
+        },
+      ],
+      environment_variables: [{ key: 'E2E_PREVIEW', value: 'true' }],
+    }
+    const res = await sevalla([
+      RESOURCE, 'preview', 'update', createdId,
+      '--preview-app', JSON.stringify(previewApp),
+    ], { timeout: 60_000 })
+    assert.equal(res.exitCode, 0, `preview update --preview-app failed: ${res.stderr}`)
+  })
+
+  it('should create a preview app for a branch', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    const res = await sevalla([
+      RESOURCE, 'preview', 'create-app', createdId,
+      '--branch', 'main',
+    ], { timeout: 60_000 })
+    assert.equal(res.exitCode, 0, `preview create-app failed: ${res.stderr}`)
+    const app = res.json<{ id: string; default_branch: string }>()
+    assert.ok(app.id, 'created preview app should have an id')
+    assert.equal(app.default_branch, 'main')
+    previewAppId = app.id
   })
 
   it('should disable pipeline preview', async () => {

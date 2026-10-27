@@ -112,6 +112,8 @@ sevalla apps processes create <app-id> --name web --type web --resource-type <id
 sevalla apps processes update <process-id> --app-id <id> --instances 3
 sevalla apps processes delete <process-id> --app-id <id>
 sevalla apps processes trigger <process-id> --app-id <id>
+sevalla apps processes disk update <process-id> --app-id <id> --resource-type <id> --mount-path /var/lib/data
+sevalla apps processes disk delete <process-id> --app-id <id> --confirm
 ```
 
 ### Process Metrics
@@ -403,6 +405,9 @@ sevalla pipelines stages apps remove <pipeline-id> <stage-id> <app-id>
 sevalla pipelines preview enable <pipeline-id>
 sevalla pipelines preview disable <pipeline-id>
 sevalla pipelines preview update <pipeline-id> --auto-create-app true
+sevalla pipelines preview update <pipeline-id> --preview-app "$(cat preview-app.json)"
+sevalla pipelines preview create-app <pipeline-id> --branch feature/checkout
+sevalla pipelines preview create-app <pipeline-id> --branch feature/checkout --pull-request 42
 ```
 
 ### Projects
@@ -468,6 +473,7 @@ sevalla global-env-vars delete <id>
 ```bash
 sevalla resources clusters
 sevalla resources db-types
+sevalla resources disk-types
 sevalla resources process-types
 ```
 
