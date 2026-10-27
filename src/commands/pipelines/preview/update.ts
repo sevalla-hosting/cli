@@ -13,6 +13,11 @@ export const previewOptions = [
     flags: '--stale-app-days <days>',
     description: 'Days without deployment before an app is stale',
   },
+  {
+    flags: '--preview-app <json>',
+    description:
+      'Preview app settings as JSON: location, build, processes, disks, TCP proxies and environment variables',
+  },
 ];
 
 function parseBool(value: unknown, flag: string): boolean {
@@ -20,6 +25,14 @@ function parseBool(value: unknown, flag: string): boolean {
     throw new SevallaCliError(`${flag} must be true or false.`);
   }
   return value === 'true';
+}
+
+function parseJson(value: unknown, flag: string): unknown {
+  try {
+    return JSON.parse(String(value));
+  } catch {
+    throw new SevallaCliError(`${flag} must be valid JSON.`);
+  }
 }
 
 export function previewBody(opts: Record<string, unknown>): Record<string, unknown> {
@@ -30,6 +43,8 @@ export function previewBody(opts: Record<string, unknown>): Record<string, unkno
   if (opts['deleteStaleApps'] !== undefined)
     body['delete_stale_apps'] = parseBool(opts['deleteStaleApps'], '--delete-stale-apps');
   if (opts['staleAppDays'] !== undefined) body['stale_app_days'] = Number(opts['staleAppDays']);
+  if (opts['previewApp'] !== undefined)
+    body['preview_app'] = parseJson(opts['previewApp'], '--preview-app');
   return body;
 }
 

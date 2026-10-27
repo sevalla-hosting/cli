@@ -174,6 +174,47 @@ describe('application deployments and processes', () => {
     assert.equal(proc.id, processId, 'returned process id should match')
   })
 
+  it('should attach, grow and detach a disk on the web process', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const listRes = await sevalla(['apps', 'processes', 'list', '--app-id', createdAppId])
+    assert.equal(listRes.exitCode, 0, `apps processes list failed: ${listRes.stderr}`)
+    const web = listRes.json<Process[]>().find((proc) => proc['type'] === 'web')
+    assert.ok(web, 'the app should have a web process')
+
+    const typesRes = await sevalla(['resources', 'disk-types'])
+    assert.equal(typesRes.exitCode, 0, `resources disk-types failed: ${typesRes.stderr}`)
+    const [smallest, larger] = typesRes.json<{ id: string; size_gib: number }[]>().sort((a, b) => a.size_gib - b.size_gib)
+    assert.ok(smallest, 'at least one disk resource type must exist')
+
+    const attachRes = await sevalla([
+      'apps', 'processes', 'disk', 'update', web.id,
+      '--app-id', createdAppId,
+      '--resource-type', smallest.id,
+      '--mount-path', '/var/lib/data',
+    ])
+    assert.equal(attachRes.exitCode, 0, `apps processes disk update failed: ${attachRes.stderr}`)
+    assert.equal(attachRes.json<{ size_gib: number }>().size_gib, smallest.size_gib)
+
+    if (larger) {
+      const growRes = await sevalla([
+        'apps', 'processes', 'disk', 'update', web.id,
+        '--app-id', createdAppId,
+        '--resource-type', larger.id,
+        '--mount-path', '/var/lib/data',
+      ])
+      assert.equal(growRes.exitCode, 0, `growing the disk failed: ${growRes.stderr}`)
+      assert.equal(growRes.json<{ size_gib: number }>().size_gib, larger.size_gib)
+    }
+
+    const getRes = await sevalla(['apps', 'processes', 'get', web.id, '--app-id', createdAppId])
+    assert.equal(getRes.exitCode, 0, `apps processes get failed: ${getRes.stderr}`)
+    assert.equal(getRes.json<{ disk: { mount_path: string } | null }>().disk?.mount_path, '/var/lib/data')
+
+    const detachRes = await sevalla(['apps', 'processes', 'disk', 'delete', web.id, '--app-id', createdAppId, '--confirm'])
+    assert.equal(detachRes.exitCode, 0, `apps processes disk delete failed: ${detachRes.stderr}`)
+  })
+
   it('should create a worker process', async () => {
     assert.ok(createdAppId, 'createdAppId must be set from before hook')
 

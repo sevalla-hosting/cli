@@ -5,6 +5,12 @@ import { jsonOption, resolveJsonMode } from '../../../helpers/flags.ts';
 import { printJson, printResource } from '../../../output/formatter.ts';
 import { startSpinner, stopSpinner } from '../../../output/spinner.ts';
 
+function formatDisk(disk: unknown): string {
+  if (!disk || typeof disk !== 'object') return 'None';
+  const { size_gib, mount_path } = disk as { size_gib?: number; mount_path?: string | null };
+  return mount_path ? `${size_gib} GiB at ${mount_path}` : `${size_gib} GiB`;
+}
+
 export const processesGetCommand = new Command('get')
   .description('Get process details')
   .requiredOption('--app-id <id>', 'Application ID')
@@ -27,6 +33,7 @@ export const processesGetCommand = new Command('get')
           Name: result['name'],
           Type: result['type'],
           Status: result['status'],
+          Disk: formatDisk(result['disk']),
         });
       }
     } catch (error) {
