@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/sevalla-hosting/cli/compare/v1.10.1...v1.11.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* honor --json and --api-url after subcommands, and report the real version ([#10](https://github.com/sevalla-hosting/cli/issues/10)) ([7c54c89](https://github.com/sevalla-hosting/cli/commit/7c54c89173774635a7072d4bd8d2b8f0bbcf972d))
+
+
+### Features
+
+* create preview apps, set preview app settings and manage process disks ([#11](https://github.com/sevalla-hosting/cli/issues/11)) ([b6a54b4](https://github.com/sevalla-hosting/cli/commit/b6a54b43749cbdcfcfca0a8b87a2edc48c070037))
+
 ## [1.10.2](https://github.com/sevalla-hosting/cli/compare/v1.10.1...v1.10.2) (2026-10-18)
 
 
