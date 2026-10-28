@@ -1,23 +1,25 @@
 <div align="center">
 
+<img src="https://assets.sevalla.com/brand/logo/svg/sevalla-mark-color.svg" alt="" width="64" height="64" />
+
 # Sevalla CLI
 
-**Manage your Sevalla infrastructure from the terminal.**
+**Deploy and manage Sevalla from your terminal.**
 
 [![CI](https://github.com/sevalla/cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sevalla/cli/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![npm](https://img.shields.io/npm/v/@sevalla/cli)](https://www.npmjs.com/package/@sevalla/cli)
+[![npm](https://img.shields.io/npm/v/@sevalla/cli?color=57534e)](https://www.npmjs.com/package/@sevalla/cli)
+[![License: MIT](https://img.shields.io/badge/license-MIT-57534e)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-22+-57534e?logo=node.js&logoColor=white)](https://nodejs.org/)
+
+[Docs](https://docs.sevalla.com) · [Sevalla](https://sevalla.com)
 
 </div>
 
----
+Deploy and manage applications, databases and static sites on [Sevalla](https://sevalla.com) from your terminal: trigger deployments, set environment variables, add domains, read logs and watch metrics. Every command takes `--json`, so the same commands work in scripts and CI/CD.
 
-The official CLI for the [Sevalla](https://sevalla.com) cloud platform. Deploy applications, manage databases, configure domains, monitor metrics, and more — all from your terminal. Every command supports `--json` output for CI/CD scripting.
+## Install
 
-## Installation
-
-```bash
+```sh
 # Homebrew
 brew install sevalla/tap/sevalla
 
@@ -28,73 +30,41 @@ npm install -g @sevalla/cli
 bash <(curl -fsSL https://raw.githubusercontent.com/sevalla/cli/main/install.sh)
 ```
 
-Windows binaries are available on the [releases page](https://github.com/sevalla/cli/releases/latest).
+Windows binaries are on the [releases page](https://github.com/sevalla/cli/releases/latest).
 
-## Quick Start
+## Quick start
 
-```bash
-sevalla login
-sevalla apps list
-```
-
-## Authentication
-
-### Device Authorization (Interactive)
-
-The recommended way to authenticate — opens your browser, no need to copy-paste tokens.
-
-```bash
-# Log in (opens browser for authorization)
+```sh
+# Sign in through your browser
 sevalla login
 
-# Check auth status
-sevalla auth status
-
-# Log out
-sevalla logout
-```
-
-Credentials are stored at `~/.config/sevalla/credentials.json` with `0600` permissions.
-
-### API Token (CI/CD & Scripting)
-
-For non-interactive environments, set the `SEVALLA_API_TOKEN` environment variable. When set, it takes priority over stored credentials.
-
-```bash
-# Export for the current session
-export SEVALLA_API_TOKEN="your-api-token"
+# List your applications and their IDs
 sevalla apps list
 
-# Or inline for a single command
-SEVALLA_API_TOKEN="your-api-token" sevalla apps list
-```
-
-You can generate an API token from **Settings > API Keys** in the [Sevalla dashboard](https://sevalla.com), or via the CLI:
-
-```bash
-sevalla api-keys create --name "CI Token"
+# Deploy an application's main branch
+sevalla apps deployments trigger <app-id> --branch main
 ```
 
 ## Usage
 
 ### Applications
 
-```bash
+```sh
 sevalla apps list
 sevalla apps get <id>
-sevalla apps create --name myapp --source privateGit --cluster <id>
-sevalla apps update <id> --display-name "My App"
+sevalla apps create --name storefront --source privateGit --cluster <id>
+sevalla apps update <id> --display-name "Storefront"
 sevalla apps delete <id>
 sevalla apps activate <id>
 sevalla apps suspend <id> --confirm
-sevalla apps clone <id> --display-name "Clone" --cluster <id>
+sevalla apps clone <id> --display-name "Storefront staging" --cluster <id>
 sevalla apps purge-cache <id>
 sevalla apps cdn-toggle <id>
 ```
 
 ### Deployments
 
-```bash
+```sh
 sevalla apps deployments list --app-id <id>
 sevalla apps deployments get <deployment-id> --app-id <id>
 sevalla apps deployments trigger <app-id> --branch main
@@ -107,20 +77,20 @@ sevalla apps deployments logs <deployment-id> --app-id <id>
 
 ### Processes
 
-```bash
+```sh
 sevalla apps processes list --app-id <id>
 sevalla apps processes get <process-id> --app-id <id>
 sevalla apps processes create <app-id> --name web --type web --resource-type <id>
 sevalla apps processes update <process-id> --app-id <id> --instances 3
-sevalla apps processes delete <process-id> --app-id <id>
+sevalla apps processes delete <process-id> --app-id <id> --confirm
 sevalla apps processes trigger <process-id> --app-id <id>
 sevalla apps processes disk update <process-id> --app-id <id> --resource-type <id> --mount-path /var/lib/data
 sevalla apps processes disk delete <process-id> --app-id <id> --confirm
 ```
 
-### Process Metrics
+### Process metrics
 
-```bash
+```sh
 sevalla apps processes metrics cpu-usage <app-id> <process-id>
 sevalla apps processes metrics cpu-limit <app-id> <process-id>
 sevalla apps processes metrics memory-usage <app-id> <process-id>
@@ -128,38 +98,39 @@ sevalla apps processes metrics memory-limit <app-id> <process-id>
 sevalla apps processes metrics instance-count <app-id> <process-id>
 ```
 
-### Application Domains
+### Application domains
 
-```bash
+```sh
 sevalla apps domains list --app-id <id>
-sevalla apps domains add <app-id> --name example.com
+sevalla apps domains add <app-id> --name shop.example.com
 sevalla apps domains get <domain-id> --app-id <id>
-sevalla apps domains update <domain-id> --app-id <id> --name my-app
+sevalla apps domains update <domain-id> --app-id <id> --name storefront
 sevalla apps domains delete <app-id> <domain-id>
 sevalla apps domains set-primary <app-id> <domain-id>
 sevalla apps domains toggle <app-id> <domain-id>
 sevalla apps domains refresh-status <app-id> <domain-id>
 ```
 
-### Application Environment Variables
+### Application environment variables
 
-```bash
-sevalla apps env-vars list --app-id <id>                 # values hidden; add --show-values
+```sh
+# Values are hidden; add --show-values to see them
+sevalla apps env-vars list --app-id <id>
 sevalla apps env-vars create <app-id> --key MY_VAR --value "my value"
 sevalla apps env-vars update <env-var-id> --app-id <id> --value "new value"
 sevalla apps env-vars delete <app-id> <env-var-id>
 ```
 
-### Application Logs
+### Application logs
 
-```bash
+```sh
 sevalla apps logs runtime <app-id>
 sevalla apps logs access <app-id>
 ```
 
-### Application Metrics
+### Application metrics
 
-```bash
+```sh
 sevalla apps metrics requests-per-minute <app-id>
 sevalla apps metrics response-time <app-id>
 sevalla apps metrics response-time-avg <app-id>
@@ -170,32 +141,32 @@ sevalla apps metrics slowest-requests <app-id>
 sevalla apps metrics top-pages <app-id>
 ```
 
-### Application IP Restriction
+### Application IP restriction
 
-```bash
+```sh
 sevalla apps ip-restriction get <app-id>
 sevalla apps ip-restriction update <app-id> --type allow --ip-list "1.2.3.4,5.6.7.8" --enabled true
 ```
 
-### TCP Proxies
+### TCP proxies
 
-```bash
+```sh
 sevalla apps tcp-proxies list --app-id <id>
 sevalla apps tcp-proxies create <app-id> --process-id <id> --port 3000
 sevalla apps tcp-proxies delete <app-id> <tcp-proxy-id>
 ```
 
-### Private Ports
+### Private ports
 
-```bash
+```sh
 sevalla apps private-ports list --app-id <id>
 sevalla apps private-ports create <app-id> --process-id <id> --port 8080
 sevalla apps private-ports delete <app-id> <private-port-id>
 ```
 
-### Deployment Hook
+### Deployment hook
 
-```bash
+```sh
 sevalla apps deployment-hook get <app-id>
 sevalla apps deployment-hook enable <app-id>
 sevalla apps deployment-hook disable <app-id> --confirm
@@ -204,39 +175,39 @@ sevalla apps deployment-hook regenerate <app-id> --confirm
 
 ### Databases
 
-```bash
+```sh
 sevalla databases list
 sevalla databases get <id>
-sevalla databases create --name mydb --type postgresql --db-version 16 \
-  --cluster <id> --resource-type <id> --db-name mydb --db-password secret
-sevalla databases update <id> --display-name "My DB"
+sevalla databases create --name storefront-db --type postgresql --db-version 16 \
+  --cluster <id> --resource-type <id> --db-name storefront --db-password "$DB_PASSWORD"
+sevalla databases update <id> --display-name "Storefront DB"
 sevalla databases delete <id>
 sevalla databases activate <id>
 sevalla databases suspend <id> --confirm
-sevalla databases reset-password <id> --new-password <password> --confirm
+sevalla databases reset-password <id> --new-password "$DB_PASSWORD" --confirm
 ```
 
-### Database Backups
+### Database backups
 
-```bash
+```sh
 sevalla databases backups list --db-id <id>
 sevalla databases backups create <db-id> --name nightly
 sevalla databases backups delete <db-id> <backup-id>
 sevalla databases backups restore <db-id> <backup-id> --confirm
 ```
 
-### Database Connections
+### Database connections
 
-```bash
+```sh
 sevalla databases connections internal-list --db-id <id>
 sevalla databases connections internal-create <db-id> --target-id <app-id>
 sevalla databases connections internal-delete <db-id> <connection-id>
 sevalla databases connections external-toggle <db-id>
 ```
 
-### Database Metrics
+### Database metrics
 
-```bash
+```sh
 sevalla databases metrics cpu-usage <id>
 sevalla databases metrics cpu-limit <id>
 sevalla databases metrics memory-usage <id>
@@ -247,27 +218,27 @@ sevalla databases metrics all-storage <id>
 sevalla databases metrics used-storage <id>
 ```
 
-### Database IP Restriction
+### Database IP restriction
 
-```bash
+```sh
 sevalla databases ip-restriction get <db-id>
 sevalla databases ip-restriction update <db-id> --type allow --ip-list "1.2.3.4" --enabled true
 ```
 
-### Static Sites
+### Static sites
 
-```bash
+```sh
 sevalla static-sites list
 sevalla static-sites get <id>
-sevalla static-sites create --name mysite --repository user/repo --branch main
-sevalla static-sites update <id> --display-name "My Site"
+sevalla static-sites create --name storefront-docs --repository user/repo --branch main
+sevalla static-sites update <id> --display-name "Storefront docs"
 sevalla static-sites delete <id>
 sevalla static-sites purge-cache <id>
 ```
 
-### Static Site Deployments
+### Static site deployments
 
-```bash
+```sh
 sevalla static-sites deployments list --site-id <id>
 sevalla static-sites deployments get <deployment-id> --site-id <id>
 sevalla static-sites deployments trigger <site-id> --branch main
@@ -275,37 +246,37 @@ sevalla static-sites deployments cancel <deployment-id> --site-id <id>
 sevalla static-sites deployments logs <deployment-id> --site-id <id>
 ```
 
-### Static Site Domains
+### Static site domains
 
-```bash
+```sh
 sevalla static-sites domains list --site-id <id>
 sevalla static-sites domains get <domain-id> --site-id <id>
-sevalla static-sites domains add <site-id> --name example.com
-sevalla static-sites domains update <domain-id> --site-id <id> --name my-site
+sevalla static-sites domains add <site-id> --name docs.example.com
+sevalla static-sites domains update <domain-id> --site-id <id> --name storefront-docs
 sevalla static-sites domains delete <site-id> <domain-id>
 sevalla static-sites domains set-primary <site-id> <domain-id>
 sevalla static-sites domains toggle <site-id> <domain-id>
 sevalla static-sites domains refresh-status <site-id> <domain-id>
 ```
 
-### Static Site Environment Variables
+### Static site environment variables
 
-```bash
+```sh
 sevalla static-sites env-vars list --site-id <id>
 sevalla static-sites env-vars create <site-id> --key MY_VAR --value "my value"
 sevalla static-sites env-vars update <env-var-id> --site-id <id>
 sevalla static-sites env-vars delete <site-id> <env-var-id>
 ```
 
-### Static Site Logs
+### Static site logs
 
-```bash
+```sh
 sevalla static-sites logs access <site-id>
 ```
 
-### Static Site Metrics
+### Static site metrics
 
-```bash
+```sh
 sevalla static-sites metrics requests-per-minute <site-id>
 sevalla static-sites metrics response-time <site-id>
 sevalla static-sites metrics response-time-avg <site-id>
@@ -316,94 +287,95 @@ sevalla static-sites metrics slowest-requests <site-id>
 sevalla static-sites metrics top-pages <site-id>
 ```
 
-### Load Balancers
+### Load balancers
 
-```bash
+```sh
 sevalla load-balancers list
 sevalla load-balancers get <id>
-sevalla load-balancers create --name mylb
-sevalla load-balancers update <id> --display-name "My LB"
+sevalla load-balancers create --name storefront-lb
+sevalla load-balancers update <id> --display-name "Storefront LB"
 sevalla load-balancers delete <id>
 ```
 
-### Load Balancer Destinations
+### Load balancer destinations
 
-```bash
+```sh
 sevalla load-balancers destinations list --lb-id <id>
 sevalla load-balancers destinations create <lb-id> --service-type APP --service-id <app-id>
 sevalla load-balancers destinations toggle <lb-id> <destination-id>
 sevalla load-balancers destinations delete <lb-id> <destination-id>
 ```
 
-### Load Balancer Domains
+### Load balancer domains
 
-```bash
+```sh
 sevalla load-balancers domains list --lb-id <id>
 sevalla load-balancers domains get <domain-id> --lb-id <id>
-sevalla load-balancers domains add <lb-id> --name example.com
-sevalla load-balancers domains update <domain-id> --lb-id <id> --name my-lb
+sevalla load-balancers domains add <lb-id> --name shop.example.com
+sevalla load-balancers domains update <domain-id> --lb-id <id> --name storefront-lb
 sevalla load-balancers domains delete <lb-id> <domain-id>
 sevalla load-balancers domains set-primary <lb-id> <domain-id>
 sevalla load-balancers domains toggle <lb-id> <domain-id>
 sevalla load-balancers domains refresh-status <lb-id> <domain-id>
 ```
 
-### Object Storage
+### Object storage
 
-```bash
+```sh
 sevalla object-storage list
 sevalla object-storage get <id>
-sevalla object-storage create --name mybucket
-sevalla object-storage update <id> --display-name "My Bucket"
+sevalla object-storage create --name storefront-assets
+sevalla object-storage update <id> --display-name "Storefront assets"
 sevalla object-storage delete <id>
+sevalla object-storage rotate-credentials <id> --old-keys-ttl-hours 24 --confirm
 ```
 
-### Object Storage CDN Domain
+### Object storage CDN domain
 
-```bash
+```sh
 sevalla object-storage cdn-domain enable <bucket-id>
 sevalla object-storage cdn-domain disable <bucket-id>
 ```
 
-### Object Storage CORS Policies
+### Object storage CORS policies
 
-```bash
+```sh
 sevalla object-storage cors-policies list --bucket-id <id>
 sevalla object-storage cors-policies create <bucket-id> --origins "*" --methods GET,HEAD
 sevalla object-storage cors-policies update <policy-id> --bucket-id <id> --origins "*" --methods GET
 sevalla object-storage cors-policies delete <bucket-id> <policy-id>
 ```
 
-### Object Storage Objects
+### Object storage objects
 
-```bash
+```sh
 sevalla object-storage objects list --bucket-id <id>
 sevalla object-storage objects delete <bucket-id> --keys a.txt,b.txt --confirm
 ```
 
 ### Pipelines
 
-```bash
+```sh
 sevalla pipelines list
 sevalla pipelines get <id>
-sevalla pipelines create --name mypipeline --type trunk
-sevalla pipelines update <id> --name "My Pipeline"
+sevalla pipelines create --name storefront --type trunk
+sevalla pipelines update <id> --name "Storefront"
 sevalla pipelines delete <id>
 sevalla pipelines promote <id> --source-app-id <id> --target-app-ids <id>,<id>
 ```
 
-### Pipeline Stages
+### Pipeline stages
 
-```bash
+```sh
 sevalla pipelines stages create <pipeline-id> --name staging
 sevalla pipelines stages delete <pipeline-id> <stage-id>
 sevalla pipelines stages apps add <pipeline-id> <stage-id> <app-id>
-sevalla pipelines stages apps remove <pipeline-id> <stage-id> <app-id>
+sevalla pipelines stages apps remove <pipeline-id> <stage-id> <app-id> --confirm
 ```
 
-### Pipeline Preview
+### Pipeline preview
 
-```bash
+```sh
 sevalla pipelines preview enable <pipeline-id>
 sevalla pipelines preview disable <pipeline-id>
 sevalla pipelines preview update <pipeline-id> --auto-create-app true
@@ -414,32 +386,32 @@ sevalla pipelines preview create-app <pipeline-id> --branch feature/checkout --p
 
 ### Projects
 
-```bash
+```sh
 sevalla projects list
 sevalla projects get <id>
-sevalla projects create --name myproject
-sevalla projects update <id> --name "My Project"
+sevalla projects create --name storefront
+sevalla projects update <id> --name "Storefront"
 sevalla projects delete <id>
 sevalla projects services add <project-id> --service-id <id>
-sevalla projects services remove <project-id> <service-id>
+sevalla projects services remove <project-id> <service-id> --confirm
 ```
 
-### Docker Registries
+### Docker registries
 
-```bash
+```sh
 sevalla docker-registries list
 sevalla docker-registries get <id>
-sevalla docker-registries create --name myregistry --username user --secret token
+sevalla docker-registries create --name storefront-registry --username <username> --secret "$REGISTRY_TOKEN"
 sevalla docker-registries update <id>
 sevalla docker-registries delete <id>
 ```
 
 ### Webhooks
 
-```bash
+```sh
 sevalla webhooks list
 sevalla webhooks get <id>
-sevalla webhooks create --endpoint https://example.com/hook --events "deployment.started"
+sevalla webhooks create --endpoint https://shop.example.com/webhooks/sevalla --events "deployment.started"
 sevalla webhooks update <id>
 sevalla webhooks delete <id>
 sevalla webhooks toggle <id>
@@ -448,12 +420,12 @@ sevalla webhooks deliveries list --webhook-id <id>
 sevalla webhooks deliveries get <delivery-id> --webhook-id <id>
 ```
 
-### API Keys
+### API keys
 
-```bash
+```sh
 sevalla api-keys list
 sevalla api-keys get <id>
-sevalla api-keys create --name "My Key"
+sevalla api-keys create --name "Storefront deploys"
 sevalla api-keys update <id>
 sevalla api-keys delete <id>
 sevalla api-keys toggle <id>
@@ -461,9 +433,9 @@ sevalla api-keys rotate <id> --confirm
 sevalla api-keys validate
 ```
 
-### Global Environment Variables
+### Global environment variables
 
-```bash
+```sh
 sevalla global-env-vars list
 sevalla global-env-vars create --key MY_VAR --value "my value"
 sevalla global-env-vars update <id>
@@ -472,7 +444,7 @@ sevalla global-env-vars delete <id>
 
 ### Resources
 
-```bash
+```sh
 sevalla resources clusters
 sevalla resources db-types
 sevalla resources disk-types
@@ -481,86 +453,129 @@ sevalla resources process-types
 
 ### Git
 
-```bash
+```sh
 sevalla git providers
 ```
 
 ### Users
 
-```bash
+```sh
 sevalla users list
 ```
 
-## Global Options
+### Global options
 
 Every command accepts these flags:
 
-| Option | Description |
-|--------|-------------|
-| `--json` | Output as JSON (for scripting and CI/CD) |
-| `--api-url <url>` | Override API base URL |
-| `--confirm` | Required by commands that delete data or can't be undone (suspend, restore, reset or rotate credentials) |
-| `--version` | Show version |
-| `--help` | Show help |
+| Option            | Description                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `--json`          | Output as JSON, for scripts and CI/CD                                                                    |
+| `--api-url <url>` | Override the API base URL                                                                                |
+| `--confirm`       | Required by commands that delete data or can't be undone (suspend, restore, reset or rotate credentials) |
+| `--version`       | Show the version                                                                                         |
+| `--help`          | Show help                                                                                                |
 
-```bash
+```sh
 # Pipe JSON output to jq
 sevalla apps list --json | jq '.[].name'
 
-# Use in scripts
+# Use it in scripts
 APP_ID=$(sevalla apps list --json | jq -r '.[0].id')
-sevalla apps get $APP_ID --json
+sevalla apps get "$APP_ID" --json
 ```
 
-## Shell Completion
+### Shell completion
 
-Enable tab completion for commands, subcommands, and options.
+Tab completion for commands, subcommands and options.
 
-### Bash
-
-```bash
-# Add to ~/.bashrc
+```sh
+# Bash: add to ~/.bashrc
 eval "$(sevalla completion bash)"
 ```
 
-### Zsh
-
-```bash
-# Add to ~/.zshrc
+```sh
+# Zsh: add to ~/.zshrc
 eval "$(sevalla completion zsh)"
 ```
 
-### Fish
-
-```bash
-# Add to ~/.config/fish/config.fish
+```sh
+# Fish: add to ~/.config/fish/config.fish
 sevalla completion fish | source
 ```
 
-## Environment Variables
+## Authentication
 
-| Variable | Description |
-|----------|-------------|
+### Device authorization (interactive)
+
+The recommended way to sign in: it opens your browser, so there's no token to copy and paste.
+
+```sh
+# Sign in through your browser
+sevalla login
+
+# Check that you're signed in
+sevalla auth status
+
+# Sign out
+sevalla logout
+```
+
+Credentials are stored at `~/.config/sevalla/credentials.json` with `0600` permissions.
+
+### API token (CI/CD and scripting)
+
+For non-interactive environments, set `SEVALLA_API_TOKEN`. When it's set, it takes priority over stored credentials. In CI, set it from your secret store rather than pasting it into a script.
+
+```sh
+# For the current session
+export SEVALLA_API_TOKEN=<api-token>
+sevalla apps list
+
+# For a single command
+SEVALLA_API_TOKEN=<api-token> sevalla apps list
+```
+
+Create a token under **Settings → API keys** in the [Sevalla dashboard](https://app.sevalla.com), or with the CLI:
+
+```sh
+sevalla api-keys create --name "CI token"
+```
+
+### Environment variables
+
+| Variable            | Description                                                 |
+| ------------------- | ----------------------------------------------------------- |
 | `SEVALLA_API_TOKEN` | API token for authentication (overrides stored credentials) |
-| `SEVALLA_API_URL` | Override API base URL |
+| `SEVALLA_API_URL`   | Override the API base URL                                   |
 
 ## Development
 
-```bash
+```sh
 git clone https://github.com/sevalla/cli.git
-cd sevalla-cli
+cd cli
 npm install
 ```
 
-```bash
-npm run dev -- apps list    # Run in development
-npm test                    # Run tests (node:test)
-npm run typecheck           # Type check (tsc --noEmit)
-npm run lint                # Lint (eslint)
-npm run format:check        # Format check (prettier)
-npm run build               # Build (tsup)
+```sh
+# Run in development
+npm run dev -- apps list
+
+# Run tests (node:test)
+npm test
+
+# Type check (tsc --noEmit)
+npm run typecheck
+
+# Lint (eslint)
+npm run lint
+
+# Check formatting (prettier)
+npm run format:check
+
+# Build (tsup)
+npm run build
 ```
 
 ## License
 
-[MIT](LICENSE)
+MIT. See [LICENSE](LICENSE).
