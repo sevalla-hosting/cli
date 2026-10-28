@@ -43,7 +43,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sevalla-hosting/cli.git"
+    "url": "https://github.com/sevalla/cli.git"
   },
   "dependencies": {
     "chalk": "^5.4.1",

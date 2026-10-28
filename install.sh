@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="sevalla-hosting/cli"
+REPO="sevalla/cli"
 BINARY_NAME="sevalla"
 INSTALL_DIR="/usr/local/bin"
 
