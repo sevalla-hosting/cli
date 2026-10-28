@@ -4,7 +4,7 @@
 
 **Manage your Sevalla infrastructure from the terminal.**
 
-[![CI](https://github.com/sevalla-hosting/cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sevalla-hosting/cli/actions/workflows/ci.yml)
+[![CI](https://github.com/sevalla/cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sevalla/cli/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![npm](https://img.shields.io/npm/v/@sevalla/cli)](https://www.npmjs.com/package/@sevalla/cli)
@@ -19,16 +19,16 @@ The official CLI for the [Sevalla](https://sevalla.com) cloud platform. Deploy a
 
 ```bash
 # Homebrew
-brew install sevalla-hosting/tap/sevalla
+brew install sevalla/tap/sevalla
 
 # npm (requires Node.js 22+)
 npm install -g @sevalla/cli
 
 # Shell script
-bash <(curl -fsSL https://raw.githubusercontent.com/sevalla-hosting/cli/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/sevalla/cli/main/install.sh)
 ```
 
-Windows binaries are available on the [releases page](https://github.com/sevalla-hosting/cli/releases/latest).
+Windows binaries are available on the [releases page](https://github.com/sevalla/cli/releases/latest).
 
 ## Quick Start
 
@@ -545,7 +545,7 @@ sevalla completion fish | source
 ## Development
 
 ```bash
-git clone https://github.com/sevalla-hosting/cli.git
+git clone https://github.com/sevalla/cli.git
 cd sevalla-cli
 npm install
 ```

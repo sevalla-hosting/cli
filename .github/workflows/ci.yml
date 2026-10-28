@@ -159,12 +159,12 @@ jobs:
           LINUX_ARM64_SHA=$(grep "sevalla-linux-arm64.tar.gz" binaries/checksums.txt | awk '{print $1}')
           LINUX_X64_SHA=$(grep "sevalla-linux-x64.tar.gz" binaries/checksums.txt | awk '{print $1}')
 
-          RELEASE_URL="https://github.com/sevalla-hosting/cli/releases/download/v${VERSION}"
+          RELEASE_URL="https://github.com/sevalla/cli/releases/download/v${VERSION}"
 
           cat > /tmp/sevalla.rb << FORMULA
           class Sevalla < Formula
             desc "Official CLI for the Sevalla cloud platform"
-            homepage "https://github.com/sevalla-hosting/cli"
+            homepage "https://github.com/sevalla/cli"
             version "${VERSION}"
             license "MIT"
 
@@ -206,7 +206,7 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           export GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"
 
-          git clone git@github.com:sevalla-hosting/homebrew-tap.git tap
+          git clone git@github.com:sevalla/homebrew-tap.git tap
           mkdir -p tap/Formula
           cp /tmp/sevalla.rb tap/Formula/sevalla.rb
           cd tap
