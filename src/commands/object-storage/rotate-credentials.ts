@@ -3,6 +3,7 @@ import { makeActionCommand } from '../../helpers/command-factory.ts';
 export const objectStorageRotateCredentialsCommand = makeActionCommand<Record<string, unknown>>({
   name: 'rotate-credentials',
   description: 'Rotate access and secret keys for an object storage bucket',
+  confirm: 'Rotating invalidates the current keys (immediately, or after --old-keys-ttl-hours).',
   options: [
     {
       flags: '--old-keys-ttl-hours <hours>',

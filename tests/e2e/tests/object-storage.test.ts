@@ -89,6 +89,20 @@ describe(RESOURCE, () => {
     }
   })
 
+  it('should refuse to rotate credentials without --confirm', async () => {
+    assert.ok(bucketId, 'No bucket was created')
+    const res = await sevalla([RESOURCE, 'rotate-credentials', bucketId])
+    assert.equal(res.exitCode, 1)
+    assert.match(res.stderr, /Use --confirm to proceed/)
+  })
+
+  it('should rotate credentials with --confirm', async () => {
+    assert.ok(bucketId, 'No bucket was created')
+    const res = await sevalla([RESOURCE, 'rotate-credentials', bucketId, '--confirm'])
+    assert.equal(res.exitCode, 0, `rotate-credentials failed: ${res.stderr}`)
+    assert.ok(res.json<{ access_key?: string }>().access_key, 'new access key should be returned')
+  })
+
   it('should refuse to delete objects without --confirm', async () => {
     assert.ok(bucketId, 'No bucket was created')
     const res = await sevalla([RESOURCE, 'objects', 'delete', bucketId, '--keys', 'e2e-a.txt'])

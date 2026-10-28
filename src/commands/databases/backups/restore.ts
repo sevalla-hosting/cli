@@ -3,6 +3,7 @@ import { makeSubResourceActionCommand } from '../../../helpers/command-factory.t
 export const backupsRestoreCommand = makeSubResourceActionCommand({
   name: 'restore',
   description: 'Restore a database backup',
+  confirm: "Restoring overwrites the database's current data with the backup.",
   parentIdName: 'db-id',
   childIdName: 'backup-id',
   apiCall: (client, parentId, childId) =>

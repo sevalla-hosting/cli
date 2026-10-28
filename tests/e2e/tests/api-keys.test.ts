@@ -121,7 +121,7 @@ describe('api-keys', () => {
   // ---------------------------------------------------------------------------
   it('should rotate an API key', async () => {
     assert.ok(createdKeyId, 'createdKeyId must be set')
-    const res = await sevalla(['api-keys', 'rotate', createdKeyId])
+    const res = await sevalla(['api-keys', 'rotate', createdKeyId, '--confirm'])
     assert.equal(res.exitCode, 0, `api-keys rotate failed: ${res.stderr}`)
   })
 

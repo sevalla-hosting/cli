@@ -121,7 +121,7 @@ describe('application settings', () => {
   it('should regenerate deployment hook', async () => {
     assert.ok(appId, 'appId must be set from before hook')
 
-    const res = await sevalla(['apps', 'deployment-hook', 'regenerate', appId])
+    const res = await sevalla(['apps', 'deployment-hook', 'regenerate', appId, '--confirm'])
     assert.equal(res.exitCode, 0, `deployment-hook regenerate failed: ${res.stderr}`)
   })
 

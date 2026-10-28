@@ -3,6 +3,8 @@ import { makeActionCommand } from '../../helpers/command-factory.ts';
 export const webhooksRollSecretCommand = makeActionCommand({
   name: 'roll-secret',
   description: 'Roll webhook secret',
+  confirm:
+    'Rolling invalidates the current signing secret (immediately, or after --expire-in-hours).',
   options: [
     {
       flags: '--expire-in-hours <hours>',

@@ -3,6 +3,7 @@ import { makeActionCommand } from '../../helpers/command-factory.ts';
 export const apiKeysRotateCommand = makeActionCommand({
   name: 'rotate',
   description: 'Rotate an API key',
+  confirm: 'Rotating invalidates the current token (immediately, or after --ttl hours).',
   options: [{ flags: '--ttl <hours>', description: 'Hours before old token expires (default: 0)' }],
   apiCall: (client, id, opts) =>
     client.post(`/api-keys/${id}/rotate`, {

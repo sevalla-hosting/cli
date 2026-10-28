@@ -117,6 +117,16 @@ describe('application deployments and processes', () => {
     assert.equal(deployment.id, deploymentId, 'returned deployment id should match')
   })
 
+  it('should dry-run a deployment cancel without calling the API', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const res = await sevalla(['apps', 'deployments', 'cancel', 'some-deployment', '--app-id', createdAppId, '--dry-run'])
+    assert.equal(res.exitCode, 0, `cancel --dry-run failed: ${res.stderr}`)
+    const body = res.json<{ dry_run: boolean; path: string }>()
+    assert.equal(body.dry_run, true)
+    assert.equal(body.path, `/applications/${createdAppId}/deployments/some-deployment/cancel`)
+  })
+
   it('should cancel a deployment', async () => {
     assert.ok(createdAppId, 'createdAppId must be set from before hook')
 
@@ -134,6 +144,16 @@ describe('application deployments and processes', () => {
       '--app-id', createdAppId,
     ], { timeout: 120_000 })
     assert.equal(res.exitCode, 0, `apps deployments cancel failed: ${res.stderr}`)
+  })
+
+  it('should send skip-build-cache and restart triggers the API accepts', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    // A restart needs an earlier successful build, so the API may refuse on state, but never on request shape
+    for (const flag of ['--skip-build-cache', '--restart']) {
+      const res = await sevalla(['apps', 'deployments', 'trigger', createdAppId, flag], { timeout: 120_000 })
+      assert.ok(refusedOnStateOnly(res), `trigger ${flag} failed on request shape, auth or crash: ${res.stderr}`)
+    }
   })
 
   it('should send a rollback request the API accepts', async () => {
@@ -234,6 +254,20 @@ describe('application deployments and processes', () => {
     const proc = res.json<Process>()
     assert.ok(proc.id, 'created process should have an id')
     workerProcessId = proc.id
+  })
+
+  it('should dry-run a process update without calling the API', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(workerProcessId, 'workerProcessId must be set from create test')
+
+    const res = await sevalla([
+      'apps', 'processes', 'update', workerProcessId, '--app-id', createdAppId, '--instances', '3', '--dry-run',
+    ])
+    assert.equal(res.exitCode, 0, `apps processes update --dry-run failed: ${res.stderr}`)
+    const body = res.json<{ dry_run: boolean; method: string; body: Record<string, unknown> }>()
+    assert.equal(body.dry_run, true)
+    assert.equal(body.method, 'PATCH')
+    assert.deepEqual(body.body, { scaling_strategy: { type: 'manual', config: { instanceCount: 3 } } })
   })
 
   it('should update a process', async () => {

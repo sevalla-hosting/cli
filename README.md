@@ -98,6 +98,8 @@ sevalla apps cdn-toggle <id>
 sevalla apps deployments list --app-id <id>
 sevalla apps deployments get <deployment-id> --app-id <id>
 sevalla apps deployments trigger <app-id> --branch main
+sevalla apps deployments trigger <app-id> --commit <sha> --skip-build-cache
+sevalla apps deployments trigger <app-id> --restart
 sevalla apps deployments rollback <app-id>
 sevalla apps deployments cancel <deployment-id> --app-id <id>
 sevalla apps deployments logs <deployment-id> --app-id <id>
@@ -142,7 +144,7 @@ sevalla apps domains refresh-status <app-id> <domain-id>
 ### Application Environment Variables
 
 ```bash
-sevalla apps env-vars list --app-id <id>
+sevalla apps env-vars list --app-id <id>                 # values hidden; add --show-values
 sevalla apps env-vars create <app-id> --key MY_VAR --value "my value"
 sevalla apps env-vars update <env-var-id> --app-id <id> --value "new value"
 sevalla apps env-vars delete <app-id> <env-var-id>
@@ -497,7 +499,7 @@ Every command accepts these flags:
 |--------|-------------|
 | `--json` | Output as JSON (for scripting and CI/CD) |
 | `--api-url <url>` | Override API base URL |
-| `--confirm` | Skip confirmation on destructive operations |
+| `--confirm` | Required by commands that delete data or can't be undone (suspend, restore, reset or rotate credentials) |
 | `--version` | Show version |
 | `--help` | Show help |
 

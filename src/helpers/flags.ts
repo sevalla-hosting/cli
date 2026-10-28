@@ -5,7 +5,7 @@ export function jsonOption(): Option {
 }
 
 export function confirmOption(): Option {
-  return new Option('--confirm', 'Skip confirmation prompt').default(false);
+  return new Option('--confirm', 'Confirm an operation that cannot be undone').default(false);
 }
 
 export function paginationOptions(): Option[] {

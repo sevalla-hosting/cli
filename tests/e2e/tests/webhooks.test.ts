@@ -132,7 +132,7 @@ describe('webhooks', () => {
   // ---------------------------------------------------------------------------
   it('should roll webhook secret', async () => {
     assert.ok(createdWebhookId, 'createdWebhookId must be set')
-    const res = await sevalla(['webhooks', 'roll-secret', createdWebhookId])
+    const res = await sevalla(['webhooks', 'roll-secret', createdWebhookId, '--confirm'])
     assert.equal(res.exitCode, 0, `webhooks roll-secret failed: ${res.stderr}`)
   })
 

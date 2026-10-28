@@ -1,6 +1,7 @@
 import { makeActionCommand } from '../../../helpers/command-factory.ts';
+import { omitValue } from '../../../helpers/secrets.ts';
 
-export const envVarsCreateCommand = makeActionCommand({
+export const envVarsCreateCommand = makeActionCommand<Record<string, unknown>>({
   name: 'create',
   description: 'Create an environment variable',
   idArg: 'site-id',
@@ -9,9 +10,11 @@ export const envVarsCreateCommand = makeActionCommand({
     { flags: '--value <value>', description: 'Variable value', required: true },
   ],
   apiCall: (client, id, opts) =>
-    client.post(`/static-sites/${id}/env-vars`, {
-      key: opts['key'],
-      value: opts['value'],
-    }),
+    client
+      .post<Record<string, unknown>>(`/static-sites/${id}/env-vars`, {
+        key: opts['key'],
+        value: opts['value'],
+      })
+      .then(omitValue),
   successMessage: 'Environment variable created.',
 });

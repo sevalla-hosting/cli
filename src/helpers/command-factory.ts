@@ -1,8 +1,9 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import type { ApiClient } from '../client/api-client.ts';
 import { createClient } from '../client/api-client.ts';
 import { handleError } from '../errors/handler.ts';
 import {
+  morePagesHint,
   printJson,
   printTable,
   printResource,
@@ -22,6 +23,7 @@ import {
 import type { ColumnDef } from '../output/table.ts';
 import type { PaginatedResponse, MetricsQuery, QueryParams } from '../client/types.ts';
 import { validateId } from './validate.ts';
+import { maskSecrets } from './secrets.ts';
 
 interface CommandContext {
   client: ApiClient;
@@ -38,6 +40,47 @@ function parseDataOption(raw: string): unknown {
     return JSON.parse(raw);
   } catch {
     throw new Error('Invalid JSON passed to --data. Ensure the value is valid JSON.');
+  }
+}
+
+type BodyOption = { flags: string; description: string; required?: boolean };
+
+// --data replaces the whole body, so it can't be combined with the flags, and with --data
+// the flags' requiredness is checked in the action instead of by commander
+function addBodyOptions(
+  cmd: Command,
+  options: BodyOption[],
+  apiPath: string | undefined,
+): (opts: Record<string, unknown>) => void {
+  const added = options.map((opt) => {
+    const requiredUnlessData = opt.required && apiPath;
+    const option = new Option(
+      opt.flags,
+      requiredUnlessData ? `${opt.description} (required unless --data is used)` : opt.description,
+    );
+    if (opt.required && !apiPath) option.makeOptionMandatory();
+    cmd.addOption(option);
+    return option;
+  });
+
+  if (apiPath) {
+    cmd.addOption(dataOption().conflicts(added.map((o) => o.attributeName())));
+  }
+
+  return (opts) => {
+    if (opts['data'] !== undefined) return;
+    const missing = added.find(
+      (o, i) => options[i]?.required && opts[o.attributeName()] === undefined,
+    );
+    if (missing) cmd.error(`error: required option '${missing.flags}' not specified`);
+  };
+}
+
+// Irreversible actions need --confirm; the message says what can't be undone
+function requireConfirm(opts: Record<string, unknown>, warning: string | undefined): void {
+  if (warning && !opts['confirm']) {
+    console.error(`${warning} Use --confirm to proceed.`);
+    process.exit(1);
   }
 }
 
@@ -100,6 +143,9 @@ export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
       stopSpinner();
       if (json) {
         printJson(Array.isArray(result) ? result : result.data);
+        // stderr keeps stdout a plain array while still telling the caller the list is partial
+        const hint = morePagesHint(result);
+        if (hint) console.error(hint);
       } else {
         printTable(result, config.columns);
       }
@@ -161,24 +207,14 @@ export function makeCreateCommand<T>(config: CreateCommandConfig<T>): Command {
   const cmd = new Command(config.name).description(config.description);
   cmd.addOption(jsonOption());
   cmd.addOption(dryRunOption());
-
-  if (config.apiPath) {
-    cmd.addOption(dataOption());
-  }
-
-  for (const opt of config.options) {
-    if (opt.required) {
-      cmd.requiredOption(opt.flags, opt.description);
-    } else {
-      cmd.option(opt.flags, opt.description);
-    }
-  }
+  const checkRequired = addBodyOptions(cmd, config.options, config.apiPath);
 
   cmd.action(async (opts: Record<string, unknown>) => {
+    checkRequired(opts);
     const { client, json } = getContext(opts);
     try {
       // Handle --data with raw JSON body
-      if (opts['data'] && config.apiPath) {
+      if (opts['data'] !== undefined && config.apiPath) {
         const body = parseDataOption(opts['data'] as string);
         if (opts['dryRun']) {
           printJson({
@@ -186,7 +222,7 @@ export function makeCreateCommand<T>(config: CreateCommandConfig<T>): Command {
             command: config.name,
             method: 'POST',
             path: config.apiPath,
-            body,
+            body: maskSecrets(body),
           });
           return;
         }
@@ -215,7 +251,7 @@ export function makeCreateCommand<T>(config: CreateCommandConfig<T>): Command {
         delete dryOpts['dryRun'];
         delete dryOpts['apiUrl'];
         delete dryOpts['data'];
-        printJson({ dry_run: true, command: config.name, options: dryOpts });
+        printJson({ dry_run: true, command: config.name, options: maskSecrets(dryOpts) });
         return;
       }
 
@@ -259,30 +295,26 @@ export function makeUpdateCommand<T>(config: UpdateCommandConfig<T>): Command {
   cmd.argument(`<${argName}>`, 'Resource ID');
   cmd.addOption(jsonOption());
   cmd.addOption(dryRunOption());
-
-  if (config.apiPath) {
-    cmd.addOption(dataOption());
-  }
-
-  for (const opt of config.options) {
-    if (opt.required) {
-      cmd.requiredOption(opt.flags, opt.description);
-    } else {
-      cmd.option(opt.flags, opt.description);
-    }
-  }
+  const checkRequired = addBodyOptions(cmd, config.options, config.apiPath);
 
   cmd.action(async (id: string, opts: Record<string, unknown>) => {
+    checkRequired(opts);
     const { client, json } = getContext(opts);
     try {
       validateId(id, argName);
 
       // Handle --data with raw JSON body
-      if (opts['data'] && config.apiPath) {
+      if (opts['data'] !== undefined && config.apiPath) {
         const body = parseDataOption(opts['data'] as string);
         const path = `${config.apiPath}/${id}`;
         if (opts['dryRun']) {
-          printJson({ dry_run: true, command: config.name, method: 'PATCH', path, body });
+          printJson({
+            dry_run: true,
+            command: config.name,
+            method: 'PATCH',
+            path,
+            body: maskSecrets(body),
+          });
           return;
         }
         if (!json) startSpinner('Updating...');
@@ -306,7 +338,7 @@ export function makeUpdateCommand<T>(config: UpdateCommandConfig<T>): Command {
         delete dryOpts['dryRun'];
         delete dryOpts['apiUrl'];
         delete dryOpts['data'];
-        printJson({ dry_run: true, command: config.name, id, options: dryOpts });
+        printJson({ dry_run: true, command: config.name, id, options: maskSecrets(dryOpts) });
         return;
       }
 
@@ -386,6 +418,8 @@ export interface ActionCommandConfig<T = void> {
   successMessage?: string | ((result: T) => string);
   spinnerText?: string;
   displayFields?: (item: T) => Record<string, unknown>;
+  // Set for actions that can't be undone: what is lost, shown when --confirm is missing
+  confirm?: string;
 }
 
 export function makeActionCommand<T = void>(config: ActionCommandConfig<T>): Command {
@@ -394,6 +428,7 @@ export function makeActionCommand<T = void>(config: ActionCommandConfig<T>): Com
   cmd.argument(`<${argName}>`, 'Resource ID');
   cmd.addOption(jsonOption());
   cmd.addOption(dryRunOption());
+  if (config.confirm) cmd.addOption(confirmOption());
 
   if (config.options) {
     for (const opt of config.options) {
@@ -415,6 +450,7 @@ export function makeActionCommand<T = void>(config: ActionCommandConfig<T>): Com
         return;
       }
 
+      requireConfirm(opts, config.confirm);
       if (!json) startSpinner(config.spinnerText ?? 'Processing...');
       const result = await config.apiCall(client, id, opts);
       stopSpinner();
@@ -575,6 +611,8 @@ export interface SubResourceActionConfig<T = void> {
   ) => Promise<T>;
   successMessage?: string;
   spinnerText?: string;
+  // Set for actions that can't be undone: what is lost, shown when --confirm is missing
+  confirm?: string;
 }
 
 export function makeSubResourceActionCommand<T = void>(
@@ -585,6 +623,7 @@ export function makeSubResourceActionCommand<T = void>(
   cmd.argument(`<${config.childIdName}>`, `${config.childIdName} ID`);
   cmd.addOption(jsonOption());
   cmd.addOption(dryRunOption());
+  if (config.confirm) cmd.addOption(confirmOption());
 
   cmd.action(async (parentId: string, childId: string, opts: Record<string, unknown>) => {
     const { client, json } = getContext(opts);
@@ -603,6 +642,7 @@ export function makeSubResourceActionCommand<T = void>(
         return;
       }
 
+      requireConfirm(opts, config.confirm);
       if (!json) startSpinner(config.spinnerText ?? 'Processing...');
       const result = await config.apiCall(client, parentId, childId, opts);
       stopSpinner();

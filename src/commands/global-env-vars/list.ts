@@ -1,12 +1,9 @@
 import { makeListCommand } from '../../helpers/command-factory.ts';
+import { envVarColumns, listEnvVars, showValuesOption } from '../../helpers/secrets.ts';
 
 export const globalEnvVarsListCommand = makeListCommand({
   name: 'list',
   description: 'List all global environment variables',
-  columns: [
-    { header: 'ID', key: 'id' },
-    { header: 'Key', key: 'key' },
-    { header: 'Value', key: 'value' },
-  ],
-  apiCall: (client) => client.get('/applications/global-env-vars'),
-});
+  columns: envVarColumns,
+  apiCall: (client, opts) => listEnvVars(client, '/applications/global-env-vars', opts),
+}).addOption(showValuesOption());

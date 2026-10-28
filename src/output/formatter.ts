@@ -22,8 +22,23 @@ export function printTable<T>(response: PaginatedResponse<T> | T[], columns: Col
     const limit = response.limit ?? items.length;
     const start = offset + 1;
     const end = Math.min(offset + limit, response.total);
-    console.log(chalk.dim(`Showing ${start}-${end} of ${response.total}`));
+    console.log(
+      chalk.dim(morePagesHint(response) ?? `Showing ${start}-${end} of ${response.total}`),
+    );
   }
+}
+
+// So a caller seeing one page doesn't conclude that something missing from it doesn't exist
+export function morePagesHint<T>(response: PaginatedResponse<T> | T[]): string | null {
+  if (Array.isArray(response) || response.total === undefined || response.data.length === 0) {
+    return null;
+  }
+  const offset = response.offset ?? 0;
+  const limit = response.limit || response.data.length;
+  const end = Math.min(offset + limit, response.total);
+  if (end >= response.total) return null;
+  const nextPage = Math.floor(offset / limit) + 2;
+  return `Showing ${offset + 1}-${end} of ${response.total}. Use --page ${nextPage} for the next page.`;
 }
 
 export function printResource(data: Record<string, unknown>): void {
