@@ -12,6 +12,8 @@ sevalla auth status --json
 # → { "logged_in": true, "source": "environment" }
 ```
 
+`auth status` checks the token with the API. A revoked or expired token gives `"logged_in": false, "token_rejected": true`.
+
 ## Output Format
 
 | Context | Default output |
@@ -22,6 +24,8 @@ sevalla auth status --json
 
 Always parse JSON output. Never parse table output.
 
+List commands return one page (25 items by default, `--per-page` up to 100). When more pages exist, stderr says so, e.g. `Showing 1-25 of 60. Use --page 2 for the next page.` Check it before concluding that a resource doesn't exist.
+
 ## Command Discovery
 
 ```bash
@@ -29,40 +33,46 @@ sevalla schema              # Full command tree as JSON
 sevalla schema apps.create  # Single command metadata
 ```
 
-The schema includes arguments, options, descriptions, and defaults.
+The schema includes arguments, options, descriptions, and defaults. For options, `mandatory: true` means the option must be passed; `takesValue: true` means it takes a value (`--name <name>`) rather than being a boolean switch.
 
 ## Dry Run
 
-Mutation commands (`create`, `update`, `delete`, action commands) support `--dry-run`:
+Most mutation commands (`create`, `update`, `delete`, action commands) support `--dry-run`; `sevalla schema <command>` lists it when they do. A command without it rejects the flag and does nothing:
 
 ```bash
-sevalla apps create --name test --project p1 --cluster c1 --dry-run
+sevalla apps create --name test --cluster c1 --source dockerImage --docker-image nginx:latest --dry-run
 # → { "dry_run": true, "command": "create", "options": { ... } }
 ```
 
-No API call is made. Use this to validate inputs before executing.
+No API call is made. Use this to validate inputs before executing. Passwords, secrets and env var values are masked in the output.
 
 ## Raw JSON Body
 
-Commands with `--data` accept a raw JSON payload, bypassing flag-based input:
+Commands with `--data` accept a raw JSON payload instead of flag-based input. `--data` can't be combined with the body flags; put every field in the JSON:
 
 ```bash
-sevalla apps create --data '{"name":"test","project_id":"p1","cluster_id":"c1"}'
+sevalla apps create --data '{"display_name":"test","cluster_id":"c1","source":"dockerImage","docker_image":"nginx:latest"}'
 ```
 
 Combine with `--dry-run` to preview:
 
 ```bash
-sevalla apps create --data '{"name":"test"}' --dry-run
+sevalla apps create --data '{"display_name":"test"}' --dry-run
 ```
 
 ## Destructive Operations
 
-All destructive commands require `--confirm`:
+The CLI never prompts. Commands that delete data or can't be undone fail unless `--confirm` is passed: every `delete`/`remove`, and `apps suspend`, `databases suspend`, `databases reset-password`, `databases backups restore`, `api-keys rotate`, `object-storage rotate-credentials`, `webhooks roll-secret`, `apps deployment-hook regenerate`, `apps deployment-hook disable`.
 
 ```bash
 sevalla apps delete <id> --confirm
 ```
+
+`--dry-run` works without `--confirm`.
+
+## Secrets
+
+Environment variable values are hidden by default (`env-vars list` shows keys only; pass `--show-values` to include them), and `env-vars create`/`update` don't echo the value back.
 
 ## Error Format
 

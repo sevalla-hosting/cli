@@ -4,7 +4,9 @@ import { printJson } from '../output/formatter.ts';
 interface SchemaOption {
   long: string;
   short?: string;
-  required: boolean;
+  // Commander's `required` only means the option takes a value; agents read it as "must be passed"
+  takesValue: boolean;
+  mandatory: boolean;
   description: string;
   defaultValue?: unknown;
 }
@@ -38,7 +40,8 @@ function walkCommand(cmd: Command, parentPath: string): SchemaEntry {
     .map((opt) => ({
       long: opt.long ?? '',
       short: opt.short,
-      required: opt.required ?? false,
+      takesValue: opt.required || opt.optional,
+      mandatory: opt.mandatory,
       description: opt.description,
       defaultValue: opt.defaultValue,
     }));

@@ -86,7 +86,7 @@ sevalla apps create --name myapp --source privateGit --cluster <id>
 sevalla apps update <id> --display-name "My App"
 sevalla apps delete <id>
 sevalla apps activate <id>
-sevalla apps suspend <id>
+sevalla apps suspend <id> --confirm
 sevalla apps clone <id> --display-name "Clone" --cluster <id>
 sevalla apps purge-cache <id>
 sevalla apps cdn-toggle <id>
@@ -98,6 +98,8 @@ sevalla apps cdn-toggle <id>
 sevalla apps deployments list --app-id <id>
 sevalla apps deployments get <deployment-id> --app-id <id>
 sevalla apps deployments trigger <app-id> --branch main
+sevalla apps deployments trigger <app-id> --commit <sha> --skip-build-cache
+sevalla apps deployments trigger <app-id> --restart
 sevalla apps deployments rollback <app-id>
 sevalla apps deployments cancel <deployment-id> --app-id <id>
 sevalla apps deployments logs <deployment-id> --app-id <id>
@@ -142,7 +144,7 @@ sevalla apps domains refresh-status <app-id> <domain-id>
 ### Application Environment Variables
 
 ```bash
-sevalla apps env-vars list --app-id <id>
+sevalla apps env-vars list --app-id <id>                 # values hidden; add --show-values
 sevalla apps env-vars create <app-id> --key MY_VAR --value "my value"
 sevalla apps env-vars update <env-var-id> --app-id <id> --value "new value"
 sevalla apps env-vars delete <app-id> <env-var-id>
@@ -196,8 +198,8 @@ sevalla apps private-ports delete <app-id> <private-port-id>
 ```bash
 sevalla apps deployment-hook get <app-id>
 sevalla apps deployment-hook enable <app-id>
-sevalla apps deployment-hook disable <app-id>
-sevalla apps deployment-hook regenerate <app-id>
+sevalla apps deployment-hook disable <app-id> --confirm
+sevalla apps deployment-hook regenerate <app-id> --confirm
 ```
 
 ### Databases
@@ -210,8 +212,8 @@ sevalla databases create --name mydb --type postgresql --db-version 16 \
 sevalla databases update <id> --display-name "My DB"
 sevalla databases delete <id>
 sevalla databases activate <id>
-sevalla databases suspend <id>
-sevalla databases reset-password <id> --new-password <password>
+sevalla databases suspend <id> --confirm
+sevalla databases reset-password <id> --new-password <password> --confirm
 ```
 
 ### Database Backups
@@ -220,7 +222,7 @@ sevalla databases reset-password <id> --new-password <password>
 sevalla databases backups list --db-id <id>
 sevalla databases backups create <db-id> --name nightly
 sevalla databases backups delete <db-id> <backup-id>
-sevalla databases backups restore <db-id> <backup-id>
+sevalla databases backups restore <db-id> <backup-id> --confirm
 ```
 
 ### Database Connections
@@ -441,7 +443,7 @@ sevalla webhooks create --endpoint https://example.com/hook --events "deployment
 sevalla webhooks update <id>
 sevalla webhooks delete <id>
 sevalla webhooks toggle <id>
-sevalla webhooks roll-secret <id>
+sevalla webhooks roll-secret <id> --confirm
 sevalla webhooks deliveries list --webhook-id <id>
 sevalla webhooks deliveries get <delivery-id> --webhook-id <id>
 ```
@@ -455,7 +457,7 @@ sevalla api-keys create --name "My Key"
 sevalla api-keys update <id>
 sevalla api-keys delete <id>
 sevalla api-keys toggle <id>
-sevalla api-keys rotate <id>
+sevalla api-keys rotate <id> --confirm
 sevalla api-keys validate
 ```
 
@@ -497,7 +499,7 @@ Every command accepts these flags:
 |--------|-------------|
 | `--json` | Output as JSON (for scripting and CI/CD) |
 | `--api-url <url>` | Override API base URL |
-| `--confirm` | Skip confirmation on destructive operations |
+| `--confirm` | Required by commands that delete data or can't be undone (suspend, restore, reset or rotate credentials) |
 | `--version` | Show version |
 | `--help` | Show help |
 

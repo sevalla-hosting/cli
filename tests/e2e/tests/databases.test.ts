@@ -252,7 +252,7 @@ describe(RESOURCE, () => {
     if (!backup) return t.skip('no backup available on this cluster')
 
     await waitForDbReady(createdId)
-    const res = await sevalla([RESOURCE, 'backups', 'restore', createdId, backup.id])
+    const res = await sevalla([RESOURCE, 'backups', 'restore', createdId, backup.id, '--confirm'])
     assert.equal(res.exitCode, 0, `backups restore failed: ${res.stderr}`)
     await waitForDbReady(createdId)
   })
@@ -262,7 +262,7 @@ describe(RESOURCE, () => {
   // ---------------------------------------------------------------------------
   it('should reset the database password', async () => {
     assert.ok(createdId, 'No database was created')
-    const res = await sevalla([RESOURCE, 'reset-password', createdId, '--new-password', 'E2eNewPass5678'])
+    const res = await sevalla([RESOURCE, 'reset-password', createdId, '--new-password', 'E2eNewPass5678', '--confirm'])
     assert.equal(res.exitCode, 0, `reset-password failed: ${res.stderr}`)
     await waitForDbReady(createdId)
   })
@@ -273,7 +273,7 @@ describe(RESOURCE, () => {
   it('should suspend the database', async () => {
     assert.ok(createdId, 'No database was created')
     await waitForDbReady(createdId)
-    const res = await sevalla([RESOURCE, 'suspend', createdId])
+    const res = await sevalla([RESOURCE, 'suspend', createdId, '--confirm'])
     assert.equal(res.exitCode, 0, `suspend failed: ${res.stderr}`)
     // Wait for suspended state
     for (let i = 0; i < 60; i++) {

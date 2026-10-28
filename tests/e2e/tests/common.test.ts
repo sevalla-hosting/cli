@@ -49,6 +49,47 @@ describe('common / cross-cutting concerns', () => {
     assert.ok(body.options.length > 0, 'expected at least one option')
   })
 
+  it('sevalla schema marks mandatory options separately from options that take a value', async () => {
+    const res = await sevalla(['schema', 'databases.create'])
+    assert.equal(res.exitCode, 0)
+    const options = res.json<{ options: Array<Record<string, unknown>> }>().options
+    const name = options.find((o) => o.long === '--name')
+    const project = options.find((o) => o.long === '--project')
+    const json = options.find((o) => o.long === '--json')
+    assert.deepEqual([name?.mandatory, name?.takesValue], [true, true])
+    assert.deepEqual([project?.mandatory, project?.takesValue], [false, true])
+    assert.deepEqual([json?.mandatory, json?.takesValue], [false, false])
+    assert.ok(!('required' in (name ?? {})), 'the misleading `required` field is gone')
+  })
+
+  it('auth status should report a rejected token as not logged in', async () => {
+    const res = await sevalla(['auth', 'status'], { env: { SEVALLA_API_TOKEN: 'revoked-e2e-token' } })
+    assert.equal(res.exitCode, 0, `auth status failed: ${res.stderr}`)
+    assert.deepEqual(res.json(), { logged_in: false, source: 'environment', token_rejected: true })
+  })
+
+  it('--data cannot be combined with body flags', async () => {
+    const res = await sevalla(['apps', 'create', '--data', '{}', '--name', 'x'])
+    assert.equal(res.exitCode, 1)
+    assert.match(res.stderr, /cannot be used with option '--name <name>'/)
+  })
+
+  it('--data works without the flags it replaces', async () => {
+    const res = await sevalla(['apps', 'create', '--data', '{"display_name":"x","db_password":"p"}', '--dry-run'])
+    assert.equal(res.exitCode, 0, `apps create --data --dry-run failed: ${res.stderr}`)
+    assert.deepEqual(res.json<{ body: unknown }>().body, { display_name: 'x', db_password: '********' })
+  })
+
+  it('databases create --dry-run masks the password', async () => {
+    const res = await sevalla([
+      'databases', 'create', '--name', 'x', '--type', 'postgresql', '--db-version', '16',
+      '--cluster', 'c', '--resource-type', 'r', '--db-name', 'd', '--db-password', 'hunter2-e2e', '--dry-run',
+    ])
+    assert.equal(res.exitCode, 0, `databases create --dry-run failed: ${res.stderr}`)
+    assert.ok(!res.stdout.includes('hunter2-e2e'), 'password must not be echoed')
+    assert.equal(res.json<{ options: { dbPassword: string } }>().options.dbPassword, '********')
+  })
+
   // ---------------------------------------------------------------------------
   // Schema – non-existent command should fail
   // ---------------------------------------------------------------------------

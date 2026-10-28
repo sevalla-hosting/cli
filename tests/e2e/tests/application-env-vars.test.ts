@@ -114,6 +114,8 @@ describe('application environment variables', () => {
 
     const envVar = res.json<EnvVar>()
     assert.ok(envVar.id, 'created env var should have an id')
+    assert.ok(!('value' in envVar), 'create should not echo the value')
+    assert.ok(!res.stdout.includes('test-value-123'))
     createdEnvVarId = envVar.id
   })
 
@@ -129,6 +131,44 @@ describe('application environment variables', () => {
 
     const found = envVars.find((v) => v.id === createdEnvVarId)
     assert.ok(found, 'created env var should appear in the list')
+    assert.ok(!('value' in found), 'values should be hidden by default')
+  })
+
+  it('should list environment variable values with --show-values', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const res = await sevalla(['apps', 'env-vars', 'list', '--app-id', createdAppId, '--show-values'])
+    assert.equal(res.exitCode, 0, `env-vars list failed: ${res.stderr}`)
+    const found = res.json<EnvVar[]>().find((v) => v.id === createdEnvVarId)
+    assert.equal(found?.value, 'test-value-123')
+  })
+
+  it('should say on stderr when more pages exist', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const second = await sevalla([
+      'apps', 'env-vars', 'create', createdAppId, '--key', 'E2E_TEST_VAR_2', '--value', 'x',
+    ])
+    assert.equal(second.exitCode, 0, `env-vars create failed: ${second.stderr}`)
+
+    const res = await sevalla(['apps', 'env-vars', 'list', '--app-id', createdAppId, '--per-page', '1'])
+    assert.equal(res.exitCode, 0, `env-vars list failed: ${res.stderr}`)
+    assert.equal(res.json<EnvVar[]>().length, 1)
+    assert.match(res.stderr, /Showing 1-1 of \d+\. Use --page 2 for the next page\./)
+  })
+
+  it('should mask the value in an update dry run', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+    assert.ok(createdEnvVarId, 'createdEnvVarId must be set from create test')
+
+    const res = await sevalla([
+      'apps', 'env-vars', 'update', createdEnvVarId, '--app-id', createdAppId,
+      '--value', 'dry-run-secret', '--dry-run',
+    ])
+    assert.equal(res.exitCode, 0, `env-vars update --dry-run failed: ${res.stderr}`)
+    const body = res.json<{ dry_run: boolean; body: { value: string } }>()
+    assert.equal(body.dry_run, true)
+    assert.equal(body.body.value, '********')
   })
 
   it('should update an environment variable', async () => {
@@ -146,6 +186,7 @@ describe('application environment variables', () => {
       'updated-value-456',
     ])
     assert.equal(res.exitCode, 0, `env-vars update failed: ${res.stderr}`)
+    assert.ok(!res.stdout.includes('updated-value-456'), 'update should not echo the value')
   })
 
   it('should delete an environment variable', async () => {

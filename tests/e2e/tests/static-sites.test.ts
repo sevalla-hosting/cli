@@ -194,6 +194,11 @@ describe(RESOURCE, () => {
     const envVars = res.json<{ id: string }[]>()
     assert.ok(Array.isArray(envVars))
     assert.ok(envVars.length > 0, 'should have at least one env var')
+    assert.ok(envVars.every((v) => !('value' in v)), 'values should be hidden by default')
+
+    const shown = await sevalla([RESOURCE, 'env-vars', 'list', '--site-id', createdId, '--show-values'])
+    assert.equal(shown.exitCode, 0, `env-vars list --show-values failed: ${shown.stderr}`)
+    assert.ok(shown.json<{ value?: string }[]>().every((v) => typeof v.value === 'string'))
   })
 
   it('should update a static site env var', async () => {
@@ -205,6 +210,7 @@ describe(RESOURCE, () => {
       '--value', 'updated-value-456',
     ])
     assert.equal(res.exitCode, 0, `env-vars update failed: ${res.stderr}`)
+    assert.ok(!res.stdout.includes('updated-value-456'), 'update should not echo the value')
   })
 
   it('should delete a static site env var', async () => {

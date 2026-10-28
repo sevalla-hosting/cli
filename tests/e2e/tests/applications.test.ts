@@ -116,6 +116,7 @@ describe('applications', () => {
 
     const app = res.json<App>()
     assert.equal(app.id, createdAppId, 'returned app id should match')
+    assert.ok('primary_domain' in app, 'apps get should include primary_domain')
   })
 
   it('should fail to get a non-existent application', async () => {

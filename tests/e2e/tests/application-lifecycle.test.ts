@@ -97,10 +97,18 @@ describe('application lifecycle', () => {
     }
   })
 
-  it('should suspend an application', async () => {
+  it('should refuse to suspend an application without --confirm', async () => {
     assert.ok(appId, 'appId must be set from before hook')
 
     const res = await sevalla(['apps', 'suspend', appId])
+    assert.equal(res.exitCode, 1)
+    assert.match(res.stderr, /Use --confirm to proceed/)
+  })
+
+  it('should suspend an application', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const res = await sevalla(['apps', 'suspend', appId, '--confirm'])
     assert.equal(res.exitCode, 0, `apps suspend failed: ${res.stderr}`)
   })
 

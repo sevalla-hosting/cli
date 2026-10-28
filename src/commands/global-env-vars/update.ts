@@ -1,4 +1,5 @@
 import { makeUpdateCommand } from '../../helpers/command-factory.ts';
+import { omitValue } from '../../helpers/secrets.ts';
 
 export const globalEnvVarsUpdateCommand = makeUpdateCommand({
   name: 'update',
@@ -10,12 +11,13 @@ export const globalEnvVarsUpdateCommand = makeUpdateCommand({
   displayFields: (item: Record<string, unknown>) => ({
     ID: item['id'],
     Key: item['key'],
-    Value: item['value'],
   }),
   apiCall: (client, id, opts) => {
     const body: Record<string, unknown> = {};
     if (opts['key']) body['key'] = opts['key'];
     if (opts['value']) body['value'] = opts['value'];
-    return client.put(`/applications/global-env-vars/${id}`, body);
+    return client
+      .put<Record<string, unknown>>(`/applications/global-env-vars/${id}`, body)
+      .then(omitValue);
   },
 });
