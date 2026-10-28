@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/sevalla/cli/compare/v1.11.0...v2.0.0) (2026-10-28)
+
+
+### Features
+
+* require --confirm on irreversible actions and keep secrets out of output ([#13](https://github.com/sevalla/cli/issues/13)) ([33eb4a1](https://github.com/sevalla/cli/commit/33eb4a1aba7b17eeea28a1927780c6ed89bb72f4))
+
+
+### BREAKING CHANGES
+
+* apps suspend, databases suspend, databases reset-password, databases backups restore, api-keys rotate, object-storage rotate-credentials, webhooks roll-secret, apps deployment-hook regenerate and apps deployment-hook disable fail without --confirm. env-vars list hides values unless --show-values is passed, and env-vars create and update no longer return the value. sevalla schema options report mandatory and takesValue instead of required.
+
 # [1.11.0](https://github.com/sevalla-hosting/cli/compare/v1.10.1...v1.11.0) (2026-10-27)
 
 
