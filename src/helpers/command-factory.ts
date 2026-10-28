@@ -1,6 +1,7 @@
 import { Command, Option } from 'commander';
 import type { ApiClient } from '../client/api-client.ts';
 import { createClient } from '../client/api-client.ts';
+import { SevallaCliError } from '../errors/cli-error.ts';
 import { handleError } from '../errors/handler.ts';
 import {
   morePagesHint,
@@ -78,10 +79,8 @@ function addBodyOptions(
 
 // Irreversible actions need --confirm; the message says what can't be undone
 function requireConfirm(opts: Record<string, unknown>, warning: string | undefined): void {
-  if (warning && !opts['confirm']) {
-    console.error(`${warning} Use --confirm to proceed.`);
-    process.exit(1);
-  }
+  if (warning && !opts['confirm'])
+    throw new SevallaCliError(`${warning} Use --confirm to proceed.`);
 }
 
 export interface ListCommandConfig<T> {

@@ -128,7 +128,7 @@ describe('application settings', () => {
   it('should disable deployment hook', async () => {
     assert.ok(appId, 'appId must be set from before hook')
 
-    const res = await sevalla(['apps', 'deployment-hook', 'disable', appId])
+    const res = await sevalla(['apps', 'deployment-hook', 'disable', appId, '--confirm'])
     assert.equal(res.exitCode, 0, `deployment-hook disable failed: ${res.stderr}`)
   })
 

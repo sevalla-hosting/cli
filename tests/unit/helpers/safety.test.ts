@@ -9,6 +9,7 @@ import {
 import { envVarColumns, listEnvVars, maskSecrets } from '../../../src/helpers/secrets.ts';
 import { morePagesHint } from '../../../src/output/formatter.ts';
 import { makeSchemaCommand } from '../../../src/commands/schema.ts';
+import { makeAuthStatusCommand } from '../../../src/commands/auth/status.ts';
 
 function capture(): { out: string[]; err: string[] } {
   const out: string[] = [];
@@ -18,16 +19,22 @@ function capture(): { out: string[]; err: string[] } {
   return { out, err };
 }
 
-function mockFetch(body: unknown): string[] {
+function mockFetch(body: unknown, status = 200): string[] {
   const calls: string[] = [];
   mock.method(globalThis, 'fetch', async (url: string) => {
     calls.push(url);
     return new Response(JSON.stringify(body), {
-      status: 200,
+      status,
       headers: { 'Content-Type': 'application/json' },
     });
   });
   return calls;
+}
+
+function throwOnExit(): void {
+  mock.method(process, 'exit', (code: number) => {
+    throw new Error(`exit ${code}`);
+  });
 }
 
 function quiet(cmd: Command): Command {
@@ -50,15 +57,15 @@ describe('Safety and agent-facing behaviour', () => {
         }),
       );
 
-    it('refuses to call the API without --confirm', async () => {
+    it('refuses to call the API without --confirm, as a JSON error in --json mode', async () => {
       const calls = mockFetch({});
       const { err } = capture();
-      mock.method(process, 'exit', (code: number) => {
-        throw new Error(`exit ${code}`);
-      });
+      throwOnExit();
       await assert.rejects(make().parseAsync(['abc', '--json'], { from: 'user' }), /exit 1/);
       assert.equal(calls.length, 0);
-      assert.match(err.join('\n'), /Suspending takes it offline\. Use --confirm/);
+      assert.deepEqual(JSON.parse(err.join('\n')), {
+        error: { message: 'Suspending takes it offline. Use --confirm to proceed.' },
+      });
     });
 
     it('runs with --confirm, and --dry-run needs no --confirm', async () => {
@@ -166,6 +173,45 @@ describe('Safety and agent-facing behaviour', () => {
       assert.equal(envVarColumns[2]?.get?.(hidden.data[0] ?? {}), '(hidden)');
       const shown = await listEnvVars(client, '/env', { showValues: true });
       assert.equal(shown.data[0]?.['value'], 'secret');
+    });
+  });
+
+  describe('auth status', () => {
+    const run = async () => {
+      process.env['SEVALLA_API_TOKEN'] = 'test-token';
+      try {
+        // fetch is mocked, so no request leaves the process
+        await quiet(makeAuthStatusCommand()).parseAsync(['--json'], { from: 'user' });
+      } finally {
+        delete process.env['SEVALLA_API_TOKEN'];
+      }
+    };
+
+    it('reports a token the API rejects (401) as not logged in, with exit 0', async () => {
+      mockFetch({ message: 'Unauthorized', status: 401 }, 401);
+      const { out } = capture();
+      throwOnExit();
+      await run();
+      assert.deepEqual(JSON.parse(out.join('\n')), {
+        logged_in: false,
+        source: 'environment',
+        token_rejected: true,
+      });
+    });
+
+    it('reports a valid token as logged in', async () => {
+      mockFetch({ name: 'key' });
+      const { out } = capture();
+      await run();
+      assert.deepEqual(JSON.parse(out.join('\n')), { logged_in: true, source: 'environment' });
+    });
+
+    it('fails with exit 1 on any other API error instead of claiming a rejected token', async () => {
+      mockFetch({ message: 'Internal error', status: 500 }, 500);
+      const { out } = capture();
+      throwOnExit();
+      await assert.rejects(run(), /exit 1/);
+      assert.equal(out.length, 0);
     });
   });
 

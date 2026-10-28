@@ -62,7 +62,7 @@ sevalla apps create --data '{"display_name":"test"}' --dry-run
 
 ## Destructive Operations
 
-The CLI never prompts. Commands that delete data or can't be undone fail unless `--confirm` is passed: every `delete`/`remove`, and `apps suspend`, `databases suspend`, `databases reset-password`, `databases backups restore`, `api-keys rotate`, `object-storage rotate-credentials`, `webhooks roll-secret`, `apps deployment-hook regenerate`.
+The CLI never prompts. Commands that delete data or can't be undone fail unless `--confirm` is passed: every `delete`/`remove`, and `apps suspend`, `databases suspend`, `databases reset-password`, `databases backups restore`, `api-keys rotate`, `object-storage rotate-credentials`, `webhooks roll-secret`, `apps deployment-hook regenerate`, `apps deployment-hook disable`.
 
 ```bash
 sevalla apps delete <id> --confirm
