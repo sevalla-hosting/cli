@@ -79,4 +79,16 @@ describe('resources', () => {
       assert.ok(Array.isArray(res.json()), 'expected an array')
     })
   }
+
+  it('sevalla resources db-versions should list versions for a cluster', async () => {
+    const clustersRes = await sevalla(['resources', 'clusters'])
+    const [cluster] = clustersRes.json<{ id: string }[]>()
+    assert.ok(cluster, 'at least one cluster must exist')
+
+    const res = await sevalla(['resources', 'db-versions', '--cluster', cluster.id, '--type', 'postgresql'])
+    assert.equal(res.exitCode, 0, `resources db-versions failed: ${res.stderr}`)
+    const types = res.json<{ type: string; versions: string[] }[]>()
+    assert.deepEqual(types.map((t) => t.type), ['postgresql'])
+    assert.ok(types[0]?.versions.length, 'postgresql should have versions')
+  })
 })

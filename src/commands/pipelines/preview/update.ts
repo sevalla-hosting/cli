@@ -1,5 +1,6 @@
 import { makeUpdateCommand } from '../../../helpers/command-factory.ts';
 import { SevallaCliError } from '../../../errors/cli-error.ts';
+import { parseBool } from '../../../helpers/validate.ts';
 
 // Shared with `preview enable`, which takes the same body
 export const previewOptions = [
@@ -19,13 +20,6 @@ export const previewOptions = [
       'Preview app settings as JSON: location, build, processes, disks, TCP proxies and environment variables',
   },
 ];
-
-function parseBool(value: unknown, flag: string): boolean {
-  if (value !== 'true' && value !== 'false') {
-    throw new SevallaCliError(`${flag} must be true or false.`);
-  }
-  return value === 'true';
-}
 
 function parseJson(value: unknown, flag: string): unknown {
   try {

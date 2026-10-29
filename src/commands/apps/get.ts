@@ -14,6 +14,8 @@ export const appsGetCommand = makeGetCommand({
     Type: item['type'],
     'Build Type': item['build_type'],
     Suspended: item['is_suspended'],
+    CDN: item['is_cdn_enabled'],
+    'Edge Cache': item['is_edge_cache_enabled'],
     'Primary Domain': item['primary_domain'],
     'Created At': item['created_at'],
   }),

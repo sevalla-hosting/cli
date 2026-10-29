@@ -24,6 +24,15 @@ export const processesCreateCommand = makeActionCommand({
       description:
         'When a job runs: beforeDeployment, afterSuccessDeployment or afterFailedDeployment (required for job processes)',
     },
+    {
+      flags: '--concurrency-policy <policy>',
+      description:
+        'Cron only: Forbid skips a run while the previous one is active (default), Replace stops it and starts the new one',
+    },
+    {
+      flags: '--max-run-time <seconds>',
+      description: 'Stop a cron run or job that runs longer than this (0: no limit)',
+    },
   ],
   apiCall: (client, id, opts) => {
     const body: Record<string, unknown> = {
@@ -38,6 +47,9 @@ export const processesCreateCommand = makeActionCommand({
     if (opts['command']) body['entrypoint'] = opts['command'];
     if (opts['schedule']) body['schedule'] = opts['schedule'];
     if (opts['jobStartPolicy']) body['job_start_policy'] = opts['jobStartPolicy'];
+    if (opts['concurrencyPolicy']) body['concurrency_policy'] = opts['concurrencyPolicy'];
+    if (opts['maxRunTime'] !== undefined)
+      body['active_deadline_seconds'] = Number(opts['maxRunTime']);
     return client.post(`/applications/${id}/processes`, body);
   },
   successMessage: 'Process created.',

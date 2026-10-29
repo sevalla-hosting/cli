@@ -9,6 +9,8 @@ export const backupsListCommand = makeListCommand({
     { header: 'Status', key: 'status' },
     { header: 'Created At', key: 'created_at' },
   ],
-  apiCall: (client, opts) => client.get(`/databases/${opts['dbId']}/backups`),
+  options: [{ flags: '--type <type>', description: 'Only backups of this type: daily or manual' }],
+  apiCall: (client, opts) =>
+    client.get(`/databases/${opts['dbId']}/backups`, { type: opts['type'] as string | undefined }),
   paginated: false,
 });

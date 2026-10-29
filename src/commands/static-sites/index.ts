@@ -11,6 +11,7 @@ import { makeDomainsCommands } from './domains/index.ts';
 import { makeEnvVarsCommands } from './env-vars/index.ts';
 import { makeLogsCommands } from './logs/index.ts';
 import { makeStaticSiteMetricsCommands } from './metrics/index.ts';
+import { makeRepositoryCommands } from '../../helpers/repository-commands.ts';
 
 export function makeStaticSitesCommand(): Command {
   const cmd = new Command('static-sites').description('Manage static sites');
@@ -26,5 +27,8 @@ export function makeStaticSitesCommand(): Command {
   cmd.addCommand(makeEnvVarsCommands());
   cmd.addCommand(makeLogsCommands());
   cmd.addCommand(makeStaticSiteMetricsCommands());
+  cmd.addCommand(
+    makeRepositoryCommands('/static-sites', { name: 'site-id', description: 'Static site ID' }),
+  );
   return cmd;
 }

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createClient } from '../../../client/api-client.ts';
 import { handleError } from '../../../errors/handler.ts';
-import { jsonOption, resolveJsonMode } from '../../../helpers/flags.ts';
+import { jsonOption, logsOptions, logsQuery, resolveJsonMode } from '../../../helpers/flags.ts';
 import { printJson } from '../../../output/formatter.ts';
 import { startSpinner, stopSpinner } from '../../../output/spinner.ts';
 
@@ -17,6 +17,7 @@ export const deploymentsLogsCommand = new Command('logs')
       if (!json) startSpinner('Fetching logs...');
       const result = await client.get<unknown>(
         `/applications/${opts['appId']}/deployments/${deploymentId}/logs`,
+        logsQuery(opts),
       );
       stopSpinner();
       if (json) {
@@ -35,3 +36,5 @@ export const deploymentsLogsCommand = new Command('logs')
       handleError(error, json);
     }
   });
+
+for (const opt of logsOptions()) deploymentsLogsCommand.addOption(opt);

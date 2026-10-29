@@ -1,4 +1,5 @@
 import { makeListCommand } from '../../helpers/command-factory.ts';
+import type { QueryParams } from '../../client/types.ts';
 
 export const projectsListCommand = makeListCommand({
   name: 'list',
@@ -8,5 +9,8 @@ export const projectsListCommand = makeListCommand({
     { header: 'Name', key: 'name' },
     { header: 'Description', key: 'description' },
   ],
-  apiCall: (client) => client.get('/projects'),
+  options: [
+    { flags: '--search <text>', description: 'Only projects whose name contains this text' },
+  ],
+  apiCall: (client, opts) => client.get('/projects', { search: opts['search'] } as QueryParams),
 });

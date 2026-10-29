@@ -14,6 +14,19 @@ export const processesUpdateCommand = new Command('update')
   .option('--command <command>', 'Start command')
   .option('--resource-type <id>', 'Process resource type ID')
   .option('--instances <count>', 'Instance count')
+  .option('--schedule <cron>', 'Cron expression (cron processes)')
+  .option(
+    '--job-start-policy <policy>',
+    'When a job runs: beforeDeployment, afterSuccessDeployment or afterFailedDeployment',
+  )
+  .option(
+    '--concurrency-policy <policy>',
+    'Cron only: Forbid skips a run while the previous one is active, Replace stops it and starts the new one',
+  )
+  .option(
+    '--max-run-time <seconds>',
+    'Stop a cron run or job that runs longer than this (0: no limit)',
+  )
   .addOption(jsonOption())
   .addOption(dryRunOption())
   .action(async (processId: string, opts: Record<string, unknown>) => {
@@ -31,6 +44,11 @@ export const processesUpdateCommand = new Command('update')
           type: 'manual',
           config: { instanceCount: Number(opts['instances']) },
         };
+      if (opts['schedule']) body['schedule'] = opts['schedule'];
+      if (opts['jobStartPolicy']) body['job_start_policy'] = opts['jobStartPolicy'];
+      if (opts['concurrencyPolicy']) body['concurrency_policy'] = opts['concurrencyPolicy'];
+      if (opts['maxRunTime'] !== undefined)
+        body['active_deadline_seconds'] = Number(opts['maxRunTime']);
       const path = `/applications/${opts['appId']}/processes/${processId}`;
       if (opts['dryRun']) {
         printJson({ dry_run: true, command: 'update', method: 'PATCH', path, body });

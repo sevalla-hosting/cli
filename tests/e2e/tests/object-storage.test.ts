@@ -182,4 +182,10 @@ describe(RESOURCE, () => {
     assert.equal(data.id, bucketId)
     bucketId = undefined
   })
+
+  it('should purge the CDN cache', async () => {
+    assert.ok(bucketId, 'No bucket was created')
+    const res = await sevalla([RESOURCE, 'purge-cache', bucketId])
+    assert.equal(res.exitCode, 0, `purge-cache failed: ${res.stderr}`)
+  })
 })

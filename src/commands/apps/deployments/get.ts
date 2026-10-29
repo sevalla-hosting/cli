@@ -25,6 +25,7 @@ export const deploymentsGetCommand = new Command('get')
         printResource({
           ID: result['id'],
           Status: result['status'],
+          'Dockerfile ID': result['dockerfile_id'],
           'Created At': result['created_at'],
         });
       }

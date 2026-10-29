@@ -94,6 +94,7 @@ export interface ListCommandConfig<T> {
   parentIdFlag?: { name: string; description: string };
   // false for endpoints that don't accept limit/offset
   paginated?: boolean;
+  options?: Array<{ flags: string; description: string; required?: boolean }>;
 }
 
 export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
@@ -108,6 +109,11 @@ export function makeListCommand<T>(config: ListCommandConfig<T>): Command {
     for (const opt of paginationOptions()) {
       cmd.addOption(opt);
     }
+  }
+
+  for (const opt of config.options ?? []) {
+    if (opt.required) cmd.requiredOption(opt.flags, opt.description);
+    else cmd.option(opt.flags, opt.description);
   }
 
   cmd.action(async (opts: Record<string, unknown>) => {
@@ -482,8 +488,10 @@ export interface MetricsCommandConfig {
     client: ApiClient,
     id: string,
     query: MetricsQuery,
+    opts: Record<string, unknown>,
   ) => Promise<Array<{ time: string; value: number }>>;
   parentIds?: string[];
+  options?: Array<{ flags: string; description: string }>;
 }
 
 export function makeMetricsCommand(config: MetricsCommandConfig): Command {
@@ -495,6 +503,9 @@ export function makeMetricsCommand(config: MetricsCommandConfig): Command {
   cmd.addOption(jsonOption());
   for (const opt of metricsOptions()) {
     cmd.addOption(opt);
+  }
+  for (const opt of config.options ?? []) {
+    cmd.option(opt.flags, opt.description);
   }
 
   cmd.action(async (...actionArgs: unknown[]) => {
@@ -516,7 +527,7 @@ export function makeMetricsCommand(config: MetricsCommandConfig): Command {
     try {
       if (!json) startSpinner('Fetching metrics...');
       const compositeId = ids.join('/');
-      const result = await config.apiCall(client, compositeId, query);
+      const result = await config.apiCall(client, compositeId, query, opts);
       stopSpinner();
       if (json) {
         printJson(result);
@@ -612,6 +623,7 @@ export interface SubResourceActionConfig<T = void> {
   spinnerText?: string;
   // Set for actions that can't be undone: what is lost, shown when --confirm is missing
   confirm?: string;
+  options?: Array<{ flags: string; description: string; required?: boolean }>;
 }
 
 export function makeSubResourceActionCommand<T = void>(
@@ -623,6 +635,10 @@ export function makeSubResourceActionCommand<T = void>(
   cmd.addOption(jsonOption());
   cmd.addOption(dryRunOption());
   if (config.confirm) cmd.addOption(confirmOption());
+  for (const opt of config.options ?? []) {
+    if (opt.required) cmd.requiredOption(opt.flags, opt.description);
+    else cmd.option(opt.flags, opt.description);
+  }
 
   cmd.action(async (parentId: string, childId: string, opts: Record<string, unknown>) => {
     const { client, json } = getContext(opts);

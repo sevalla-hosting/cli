@@ -305,4 +305,113 @@ describe(RESOURCE, () => {
     assert.equal(data.id, createdId)
     createdId = undefined
   })
+
+  // ---------------------------------------------------------------------------
+  // List filters
+  // ---------------------------------------------------------------------------
+  it('should find the database with list --search and --type', async () => {
+    assert.ok(createdId, 'No database was created')
+    const getRes = await sevalla([RESOURCE, 'get', createdId])
+    const { display_name: name } = getRes.json<{ display_name: string }>()
+    const res = await sevalla([RESOURCE, 'list', '--search', name, '--type', 'postgresql', '--project', projectId])
+    assert.equal(res.exitCode, 0, `list --search failed: ${res.stderr}`)
+    assert.ok(res.json<{ id: string }[]>().some((d) => d.id === createdId), 'database should be found')
+  })
+
+  // ---------------------------------------------------------------------------
+  // Application internal connections, from the app side
+  // ---------------------------------------------------------------------------
+  it('should connect an application to the database from the app side', async () => {
+    assert.ok(createdId, 'No database was created')
+    assert.ok(appId, 'No app was created')
+    const res = await sevalla([
+      'apps', 'internal-connections', 'create', appId,
+      '--target-id', createdId,
+      '--target-type', 'database',
+    ])
+    assert.equal(res.exitCode, 0, `apps internal-connections create failed: ${res.stderr}`)
+
+    const listRes = await sevalla(['apps', 'internal-connections', 'list', '--app-id', appId])
+    assert.equal(listRes.exitCode, 0, `apps internal-connections list failed: ${listRes.stderr}`)
+    const conn = listRes.json<{ id: string; target_id: string; source_id: string }[]>()
+      .find((c) => c.target_id === createdId || c.source_id === createdId)
+    assert.ok(conn, 'created connection should be listed')
+
+    const delRes = await sevalla(['apps', 'internal-connections', 'delete', appId, conn.id, '--confirm'])
+    assert.equal(delRes.exitCode, 0, `apps internal-connections delete failed: ${delRes.stderr}`)
+  })
+
+  // ---------------------------------------------------------------------------
+  // Backup targets and external backups
+  // ---------------------------------------------------------------------------
+  it('should list backups by type', async () => {
+    assert.ok(createdId, 'No database was created')
+    const res = await sevalla([RESOURCE, 'backups', 'list', '--db-id', createdId, '--type', 'manual'])
+    assert.equal(res.exitCode, 0, `backups list --type failed: ${res.stderr}`)
+  })
+
+  it('should back up to an object storage bucket and restore from it', async (t) => {
+    assert.ok(createdId, 'No database was created')
+    const bucketRes = await sevalla(['object-storage', 'create', '--name', `e2e-db-dumps-${Date.now()}`, '--project', projectId])
+    assert.equal(bucketRes.exitCode, 0, `object-storage create failed: ${bucketRes.stderr}`)
+    const bucketId = bucketRes.json<{ id: string }>().id
+
+    try {
+      await waitForDbReady(createdId)
+      const createRes = await sevalla([
+        RESOURCE, 'backup-targets', 'create', createdId,
+        '--name', 'e2e-dumps',
+        '--object-storage', bucketId,
+        '--schedule', '15 3 * * *',
+        '--retention-days', '3',
+      ])
+      assert.ok(refusedOnStateOnly(createRes), `backup-targets create failed on request shape, auth or crash: ${createRes.stderr}`)
+      if (createRes.exitCode !== 0) return t.skip('external backups are not supported here')
+      const targetId = createRes.json<{ id: string }>().id
+
+      const listRes = await sevalla([RESOURCE, 'backup-targets', 'list', '--db-id', createdId])
+      assert.equal(listRes.exitCode, 0, `backup-targets list failed: ${listRes.stderr}`)
+      assert.ok(listRes.json<{ id: string }[]>().some((bt) => bt.id === targetId), 'target should be listed')
+
+      await waitForDbReady(createdId)
+      const updateRes = await sevalla([RESOURCE, 'backup-targets', 'update', createdId, targetId, '--schedule', '', '--enabled', 'false'])
+      assert.ok(refusedOnStateOnly(updateRes), `backup-targets update failed on request shape, auth or crash: ${updateRes.stderr}`)
+
+      await waitForDbReady(createdId)
+      const backupRes = await sevalla([RESOURCE, 'external-backups', 'create', createdId, '--name', 'e2e-manual'])
+      assert.ok(refusedOnStateOnly(backupRes), `external-backups create failed on request shape, auth or crash: ${backupRes.stderr}`)
+
+      // The dump uploads asynchronously
+      let backup: { id: string } | undefined
+      for (let i = 0; i < 20 && !backup; i++) {
+        await sleep(3000)
+        const res = await sevalla([RESOURCE, 'external-backups', 'list', '--db-id', createdId, '--type', 'manual'])
+        assert.equal(res.exitCode, 0, `external-backups list failed: ${res.stderr}`)
+        backup = res.json<{ id: string }[]>()[0]
+      }
+      if (backup) {
+        const urlRes = await sevalla([RESOURCE, 'external-backups', 'download-url', createdId, backup.id])
+        assert.equal(urlRes.exitCode, 0, `external-backups download-url failed: ${urlRes.stderr}`)
+        assert.match(urlRes.json<{ url: string }>().url, /^https:\/\//)
+
+        const refused = await sevalla([RESOURCE, 'external-backups', 'restore', createdId, backup.id])
+        assert.equal(refused.exitCode, 1, 'restore should need --confirm')
+
+        await waitForDbReady(createdId)
+        const restoreRes = await sevalla([RESOURCE, 'external-backups', 'restore', createdId, backup.id, '--confirm'])
+        assert.equal(restoreRes.exitCode, 0, `external-backups restore failed: ${restoreRes.stderr}`)
+        await waitForDbReady(createdId)
+
+        const delRes = await sevalla([RESOURCE, 'external-backups', 'delete', createdId, backup.id, '--confirm'])
+        assert.equal(delRes.exitCode, 0, `external-backups delete failed: ${delRes.stderr}`)
+      }
+
+      await waitForDbReady(createdId)
+      const delTarget = await sevalla([RESOURCE, 'backup-targets', 'delete', createdId, targetId, '--confirm'])
+      assert.equal(delTarget.exitCode, 0, `backup-targets delete failed: ${delTarget.stderr}`)
+      await waitForDbReady(createdId)
+    } finally {
+      await safeDelete(['object-storage'], bucketId)
+    }
+  })
 })

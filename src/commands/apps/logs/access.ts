@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createClient } from '../../../client/api-client.ts';
 import { handleError } from '../../../errors/handler.ts';
-import { jsonOption, resolveJsonMode } from '../../../helpers/flags.ts';
+import { jsonOption, logsOptions, logsQuery, resolveJsonMode } from '../../../helpers/flags.ts';
 import { printJson } from '../../../output/formatter.ts';
 import { startSpinner, stopSpinner } from '../../../output/spinner.ts';
 
@@ -14,7 +14,10 @@ export const accessLogsCommand = new Command('access')
     const json = resolveJsonMode(opts);
     try {
       if (!json) startSpinner('Fetching logs...');
-      const result = await client.get<unknown>(`/applications/${appId}/access-logs`);
+      const result = await client.get<unknown>(
+        `/applications/${appId}/access-logs`,
+        logsQuery(opts),
+      );
       stopSpinner();
       if (json) {
         printJson(result);
@@ -32,3 +35,5 @@ export const accessLogsCommand = new Command('access')
       handleError(error, json);
     }
   });
+
+for (const opt of logsOptions()) accessLogsCommand.addOption(opt);

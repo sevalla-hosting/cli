@@ -222,4 +222,69 @@ describe('application settings', () => {
     const res = await sevalla(['apps', 'logs', 'access', appId])
     assert.equal(res.exitCode, 0, `logs access failed: ${res.stderr}`)
   })
+
+  it('should get runtime and access logs with filters', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const from = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    for (const kind of ['runtime', 'access']) {
+      const res = await sevalla(['apps', 'logs', kind, appId, '--from', from, '--search', 'GET', '--order', 'desc', '--limit', '5'])
+      assert.equal(res.exitCode, 0, `logs ${kind} with filters failed: ${res.stderr}`)
+    }
+  })
+
+  // Lists and metrics
+
+  it('should find the application with list --search', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const res = await sevalla(['apps', 'list', '--search', `e2e-settings-app-${ts}`, '--source', 'dockerImage', '--project', projectId as string])
+    assert.equal(res.exitCode, 0, `apps list --search failed: ${res.stderr}`)
+    assert.deepEqual(res.json<App[]>().map((a) => a.id), [appId])
+  })
+
+  it('should get a response time percentile', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const res = await sevalla(['apps', 'metrics', 'response-time', appId, '--percent', '95'])
+    assert.equal(res.exitCode, 0, `metrics response-time --percent failed: ${res.stderr}`)
+  })
+
+  // Edge cache and egress IPs
+
+  it('should toggle edge caching on and off', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const first = await sevalla(['apps', 'edge-cache-toggle', appId])
+    assert.equal(first.exitCode, 0, `edge-cache-toggle failed: ${first.stderr}`)
+    const second = await sevalla(['apps', 'edge-cache-toggle', appId])
+    assert.equal(second.exitCode, 0, `edge-cache-toggle failed: ${second.stderr}`)
+    assert.notEqual(first.json<{ is_turned_on: boolean }>().is_turned_on, second.json<{ is_turned_on: boolean }>().is_turned_on)
+  })
+
+  it('should list egress IPs', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const res = await sevalla(['apps', 'egress-ips', appId])
+    assert.equal(res.exitCode, 0, `egress-ips failed: ${res.stderr}`)
+    assert.ok(Array.isArray(res.json<{ egress_ips: string[] }>().egress_ips))
+  })
+
+  // Maintenance mode
+
+  it('should turn maintenance mode on with a custom page and off again', async () => {
+    assert.ok(appId, 'appId must be set from before hook')
+
+    const getRes = await sevalla(['apps', 'maintenance-mode', 'get', appId])
+    assert.equal(getRes.exitCode, 0, `maintenance-mode get failed: ${getRes.stderr}`)
+    assert.equal(getRes.json<{ is_enabled: boolean }>().is_enabled, false)
+
+    const onRes = await sevalla(['apps', 'maintenance-mode', 'update', appId, '--enabled', 'true', '--page-url', 'https://sevalla.com'])
+    assert.equal(onRes.exitCode, 0, `maintenance-mode update failed: ${onRes.stderr}`)
+    assert.deepEqual(onRes.json(), { is_enabled: true, page_url: 'https://sevalla.com' })
+
+    const offRes = await sevalla(['apps', 'maintenance-mode', 'update', appId, '--enabled', 'false', '--page-url', ''])
+    assert.equal(offRes.exitCode, 0, `maintenance-mode update failed: ${offRes.stderr}`)
+    assert.deepEqual(offRes.json(), { is_enabled: false, page_url: null })
+  })
 })

@@ -137,4 +137,12 @@ describe('api-keys', () => {
     assert.equal(body.id, createdKeyId)
     createdKeyId = undefined
   })
+
+  it('should get the current API key and its capabilities', async () => {
+    const res = await sevalla(['api-keys', 'current'])
+    assert.equal(res.exitCode, 0, `api-keys current failed: ${res.stderr}`)
+    const key = res.json<{ id: string; capabilities: unknown[] }>()
+    assert.ok(key.id, 'current key should have an id')
+    assert.ok(Array.isArray(key.capabilities), 'capabilities should be an array')
+  })
 })

@@ -62,13 +62,17 @@ sevalla apps create --data '{"display_name":"test"}' --dry-run
 
 ## Destructive Operations
 
-The CLI never prompts. Commands that delete data or can't be undone fail unless `--confirm` is passed: every `delete`/`remove`, and `apps suspend`, `databases suspend`, `databases reset-password`, `databases backups restore`, `api-keys rotate`, `object-storage rotate-credentials`, `webhooks roll-secret`, `apps deployment-hook regenerate`, `apps deployment-hook disable`.
+The CLI never prompts. Commands that delete data or can't be undone fail unless `--confirm` is passed: every `delete`/`remove`, and `apps suspend`, `databases suspend`, `databases reset-password`, `databases backups restore`, `databases external-backups restore`, `api-keys rotate`, `object-storage rotate-credentials`, `webhooks roll-secret`, `apps deployment-hook regenerate`, `apps deployment-hook disable`.
 
 ```bash
 sevalla apps delete <id> --confirm
 ```
 
 `--dry-run` works without `--confirm`.
+
+## Running Commands in a Process
+
+`apps processes exec <process-id> --app-id <id> -- <command...>` runs one command without a shell and exits with the command's exit code; the JSON output has `stdout`, `stderr` and `exit_code`. `apps processes terminal` opens an interactive shell and needs a TTY, so use `exec` instead.
 
 ## Secrets
 

@@ -30,9 +30,12 @@ export const processesGetCommand = new Command('get')
       } else {
         printResource({
           ID: result['id'],
-          Name: result['name'],
+          Name: result['display_name'],
+          Key: result['key'],
           Type: result['type'],
-          Status: result['status'],
+          Schedule: result['schedule'],
+          'Concurrency Policy': result['concurrency_policy'],
+          'Max Run Time (s)': result['active_deadline_seconds'],
           Disk: formatDisk(result['disk']),
         });
       }

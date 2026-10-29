@@ -10,6 +10,8 @@ import { databasesRestartCommand } from './restart.ts';
 import { databasesResetPasswordCommand } from './reset-password.ts';
 import { makeDatabaseMetricsCommands } from './metrics/index.ts';
 import { makeBackupsCommands } from './backups/index.ts';
+import { makeBackupTargetsCommands } from './backup-targets/index.ts';
+import { makeExternalBackupsCommands } from './external-backups/index.ts';
 import { makeConnectionsCommands } from './connections/index.ts';
 import { makeIpRestrictionCommands } from './ip-restriction/index.ts';
 
@@ -26,6 +28,8 @@ export function makeDatabasesCommand(): Command {
   cmd.addCommand(databasesResetPasswordCommand);
   cmd.addCommand(makeDatabaseMetricsCommands());
   cmd.addCommand(makeBackupsCommands());
+  cmd.addCommand(makeBackupTargetsCommands());
+  cmd.addCommand(makeExternalBackupsCommands());
   cmd.addCommand(makeConnectionsCommands());
   cmd.addCommand(makeIpRestrictionCommands());
   return cmd;

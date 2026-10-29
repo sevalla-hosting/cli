@@ -47,7 +47,7 @@ export class ApiClient {
       method: opts.method,
       headers,
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(opts.timeoutMs ?? 30_000),
     });
 
     if (response.status === 204) {

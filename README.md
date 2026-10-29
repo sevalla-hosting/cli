@@ -51,15 +51,53 @@ sevalla apps deployments trigger <app-id> --branch main
 
 ```sh
 sevalla apps list
+sevalla apps list --search storefront --status deploymentFailed
 sevalla apps get <id>
 sevalla apps create --name storefront --source privateGit --cluster <id>
 sevalla apps update <id> --display-name "Storefront"
+# Ingot is the default build type; nixpacks is deprecated
+sevalla apps update <id> --build-type ingot
 sevalla apps delete <id>
 sevalla apps activate <id>
 sevalla apps suspend <id> --confirm
 sevalla apps clone <id> --display-name "Storefront staging" --cluster <id>
 sevalla apps purge-cache <id>
 sevalla apps cdn-toggle <id>
+sevalla apps edge-cache-toggle <id>
+sevalla apps egress-ips <id>
+```
+
+### Application Dockerfiles
+
+```sh
+# Dockerfiles Ingot generated, or the repository's own, one version per change
+sevalla apps dockerfiles list --app-id <id>
+sevalla apps dockerfiles get <dockerfile-id> --app-id <id>
+```
+
+### Application repository
+
+```sh
+sevalla apps repository get <app-id>
+sevalla apps repository tree <app-id> --path src
+sevalla apps repository contents <app-id> --path package.json --ref main
+sevalla apps repository search <app-id> --query createServer
+```
+
+### Maintenance mode
+
+```sh
+sevalla apps maintenance-mode get <app-id>
+sevalla apps maintenance-mode update <app-id> --enabled true --page-url https://status.example.com
+sevalla apps maintenance-mode update <app-id> --enabled false
+```
+
+### Application internal connections
+
+```sh
+sevalla apps internal-connections list --app-id <id>
+sevalla apps internal-connections create <app-id> --target-id <db-id> --target-type database
+sevalla apps internal-connections delete <app-id> <connection-id> --confirm
 ```
 
 ### Deployments
@@ -83,7 +121,13 @@ sevalla apps processes get <process-id> --app-id <id>
 sevalla apps processes create <app-id> --name web --type web --resource-type <id>
 sevalla apps processes update <process-id> --app-id <id> --instances 3
 sevalla apps processes delete <process-id> --app-id <id> --confirm
+sevalla apps processes create <app-id> --name nightly --type cron --resource-type <id> \
+  --command "npm run report" --schedule "0 3 * * *" --concurrency-policy Replace --max-run-time 3600
 sevalla apps processes trigger <process-id> --app-id <id>
+sevalla apps processes runs --app-id <id> --process-id <id>
+# exec exits with the command's exit code; terminal opens an interactive shell
+sevalla apps processes exec <process-id> --app-id <id> -- ls -la /app
+sevalla apps processes terminal <process-id> --app-id <id> --shell bash
 sevalla apps processes disk update <process-id> --app-id <id> --resource-type <id> --mount-path /var/lib/data
 sevalla apps processes disk delete <process-id> --app-id <id> --confirm
 ```
@@ -125,6 +169,7 @@ sevalla apps env-vars delete <app-id> <env-var-id>
 
 ```sh
 sevalla apps logs runtime <app-id>
+sevalla apps logs runtime <app-id> --search "connection refused" --from 2026-10-29T10:00:00Z --order desc
 sevalla apps logs access <app-id>
 ```
 
@@ -132,7 +177,7 @@ sevalla apps logs access <app-id>
 
 ```sh
 sevalla apps metrics requests-per-minute <app-id>
-sevalla apps metrics response-time <app-id>
+sevalla apps metrics response-time <app-id> --percent 95
 sevalla apps metrics response-time-avg <app-id>
 sevalla apps metrics status-codes <app-id>
 sevalla apps metrics top-status-codes <app-id>
@@ -177,6 +222,7 @@ sevalla apps deployment-hook regenerate <app-id> --confirm
 
 ```sh
 sevalla databases list
+sevalla databases list --search storefront --type postgresql
 sevalla databases get <id>
 sevalla databases create --name storefront-db --type postgresql --db-version 16 \
   --cluster <id> --resource-type <id> --db-name storefront --db-password "$DB_PASSWORD"
@@ -194,6 +240,29 @@ sevalla databases backups list --db-id <id>
 sevalla databases backups create <db-id> --name nightly
 sevalla databases backups delete <db-id> <backup-id>
 sevalla databases backups restore <db-id> <backup-id> --confirm
+```
+
+### Database backup targets
+
+```sh
+# Dump backups to Sevalla object storage, or to any S3-compatible bucket
+sevalla databases backup-targets list --db-id <id>
+sevalla databases backup-targets create <db-id> --name nightly --object-storage <bucket-id>
+sevalla databases backup-targets create <db-id> --name offsite --bucket dumps \
+  --endpoint https://s3.example.com --region eu-west-1 --access-key "$S3_KEY" --secret-key "$S3_SECRET"
+sevalla databases backup-targets update <db-id> <target-id> --schedule "15 3 * * *" --retention-days 30
+sevalla databases backup-targets delete <db-id> <target-id> --confirm
+```
+
+### Database external backups
+
+```sh
+sevalla databases external-backups list --db-id <id>
+sevalla databases external-backups create <db-id> --name before-migration
+sevalla databases external-backups download-url <db-id> <backup-id>
+sevalla databases external-backups restore <db-id> <backup-id> --confirm
+sevalla databases external-backups restore <db-id> <backup-id> --target-db <id> --confirm
+sevalla databases external-backups delete <db-id> <backup-id> --confirm
 ```
 
 ### Database connections
@@ -268,17 +337,27 @@ sevalla static-sites env-vars update <env-var-id> --site-id <id>
 sevalla static-sites env-vars delete <site-id> <env-var-id>
 ```
 
+### Static site repository
+
+```sh
+sevalla static-sites repository get <site-id>
+sevalla static-sites repository tree <site-id>
+sevalla static-sites repository contents <site-id> --path index.html
+sevalla static-sites repository search <site-id> --query footer
+```
+
 ### Static site logs
 
 ```sh
 sevalla static-sites logs access <site-id>
+sevalla static-sites logs access <site-id> --search /checkout --limit 100
 ```
 
 ### Static site metrics
 
 ```sh
 sevalla static-sites metrics requests-per-minute <site-id>
-sevalla static-sites metrics response-time <site-id>
+sevalla static-sites metrics response-time <site-id> --percent 95
 sevalla static-sites metrics response-time-avg <site-id>
 sevalla static-sites metrics status-codes <site-id>
 sevalla static-sites metrics top-status-codes <site-id>
@@ -328,6 +407,7 @@ sevalla object-storage create --name storefront-assets
 sevalla object-storage update <id> --display-name "Storefront assets"
 sevalla object-storage delete <id>
 sevalla object-storage rotate-credentials <id> --old-keys-ttl-hours 24 --confirm
+sevalla object-storage purge-cache <id>
 ```
 
 ### Object storage CDN domain
@@ -357,6 +437,7 @@ sevalla object-storage objects delete <bucket-id> --keys a.txt,b.txt --confirm
 
 ```sh
 sevalla pipelines list
+sevalla pipelines list --search storefront
 sevalla pipelines get <id>
 sevalla pipelines create --name storefront --type trunk
 sevalla pipelines update <id> --name "Storefront"
@@ -388,6 +469,7 @@ sevalla pipelines preview create-app <pipeline-id> --branch feature/checkout --p
 
 ```sh
 sevalla projects list
+sevalla projects list --search storefront
 sevalla projects get <id>
 sevalla projects create --name storefront
 sevalla projects update <id> --name "Storefront"
@@ -431,6 +513,7 @@ sevalla api-keys delete <id>
 sevalla api-keys toggle <id>
 sevalla api-keys rotate <id> --confirm
 sevalla api-keys validate
+sevalla api-keys current
 ```
 
 ### Global environment variables
@@ -447,6 +530,7 @@ sevalla global-env-vars delete <id>
 ```sh
 sevalla resources clusters
 sevalla resources db-types
+sevalla resources db-versions --cluster <id> --type postgresql
 sevalla resources disk-types
 sevalla resources process-types
 ```

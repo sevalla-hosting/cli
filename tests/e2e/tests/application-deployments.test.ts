@@ -343,4 +343,159 @@ describe('application deployments and processes', () => {
     assert.equal(res.exitCode, 0, `apps processes delete failed: ${res.stderr}`)
     workerProcessId = undefined
   })
+
+  // --- Ingot builds ---
+
+  it('should build new Git applications with ingot by default', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const res = await sevalla(['apps', 'get', createdAppId])
+    assert.equal(res.exitCode, 0, `apps get failed: ${res.stderr}`)
+    assert.equal(res.json<{ build_type: string }>().build_type, 'ingot')
+  })
+
+  it('should warn that nixpacks is deprecated and switch back to ingot', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const nixRes = await sevalla(['apps', 'update', createdAppId, '--build-type', 'nixpacks'])
+    assert.equal(nixRes.exitCode, 0, `apps update failed: ${nixRes.stderr}`)
+    assert.match(nixRes.stderr, /nixpacks is deprecated/)
+
+    const res = await sevalla(['apps', 'update', createdAppId, '--build-type', 'ingot'])
+    assert.equal(res.exitCode, 0, `apps update failed: ${res.stderr}`)
+    assert.equal(res.stderr, '')
+    assert.equal(res.json<{ build_type: string }>().build_type, 'ingot')
+  })
+
+  it('should list the Dockerfiles and show which one a deployment used', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const res = await sevalla(['apps', 'dockerfiles', 'list', '--app-id', createdAppId])
+    assert.equal(res.exitCode, 0, `apps dockerfiles list failed: ${res.stderr}`)
+    const dockerfiles = res.json<{ id: string }[]>()
+    assert.ok(Array.isArray(dockerfiles), 'response should be an array')
+
+    const deployRes = await sevalla(['apps', 'deployments', 'list', '--app-id', createdAppId])
+    const [deployment] = deployRes.json<Deployment[]>()
+    assert.ok(deployment, 'at least one deployment should exist')
+    const getRes = await sevalla(['apps', 'deployments', 'get', deployment.id, '--app-id', createdAppId])
+    assert.ok('dockerfile_id' in getRes.json<Record<string, unknown>>(), 'deployment should have dockerfile_id')
+
+    // Builds that haven't finished have no Dockerfile yet
+    const [dockerfile] = dockerfiles
+    if (dockerfile) {
+      const fileRes = await sevalla(['apps', 'dockerfiles', 'get', dockerfile.id, '--app-id', createdAppId])
+      assert.equal(fileRes.exitCode, 0, `apps dockerfiles get failed: ${fileRes.stderr}`)
+      assert.equal(typeof fileRes.json<{ dockerfile: string }>().dockerfile, 'string')
+    }
+  })
+
+  it('should get deployment logs with filters', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const listRes = await sevalla(['apps', 'deployments', 'list', '--app-id', createdAppId])
+    const [deployment] = listRes.json<Deployment[]>()
+    assert.ok(deployment, 'at least one deployment should exist')
+    const res = await sevalla([
+      'apps', 'deployments', 'logs', deployment.id, '--app-id', createdAppId,
+      '--search', 'build', '--order', 'desc', '--limit', '10',
+    ])
+    assert.equal(res.exitCode, 0, `apps deployments logs failed: ${res.stderr}`)
+  })
+
+  // --- Repository ---
+
+  it('should browse the application repository', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const getRes = await sevalla(['apps', 'repository', 'get', createdAppId])
+    assert.equal(getRes.exitCode, 0, `apps repository get failed: ${getRes.stderr}`)
+    assert.equal(getRes.json<{ source: string }>().source, 'publicGit')
+
+    const treeRes = await sevalla(['apps', 'repository', 'tree', createdAppId, '--ref', 'main'])
+    assert.equal(treeRes.exitCode, 0, `apps repository tree failed: ${treeRes.stderr}`)
+    const file = treeRes.json<{ entries: { path: string; type: string }[] }>().entries.find((e) => e.type === 'file')
+    assert.ok(file, 'repository root should contain a file')
+
+    const fileRes = await sevalla(['apps', 'repository', 'contents', createdAppId, '--path', file.path, '--ref', 'main'])
+    assert.equal(fileRes.exitCode, 0, `apps repository contents failed: ${fileRes.stderr}`)
+    assert.equal(fileRes.json<{ path: string }>().path, file.path)
+
+    // Provider code search can be unavailable for public repositories
+    const searchRes = await sevalla(['apps', 'repository', 'search', createdAppId, '--query', 'main'])
+    assert.ok(refusedOnStateOnly(searchRes), `apps repository search failed on request shape, auth or crash: ${searchRes.stderr}`)
+  })
+
+  // --- Cron processes ---
+
+  it('should create, update and list the runs of a cron process', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const typesRes = await sevalla(['resources', 'process-types'])
+    const [resourceType] = typesRes.json<{ id: string }[]>()
+    assert.ok(resourceType, 'at least one process resource type must exist')
+
+    const createRes = await sevalla([
+      'apps', 'processes', 'create', createdAppId,
+      '--name', `e2e-cron-${ts}`,
+      '--type', 'cron',
+      '--resource-type', resourceType.id,
+      '--command', 'echo hello',
+      '--schedule', '0 3 * * *',
+      '--concurrency-policy', 'Replace',
+      '--max-run-time', '600',
+    ])
+    assert.equal(createRes.exitCode, 0, `apps processes create failed: ${createRes.stderr}`)
+    const cronId = createRes.json<Process>().id
+
+    try {
+      const getRes = await sevalla(['apps', 'processes', 'get', cronId, '--app-id', createdAppId])
+      const cron = getRes.json<{ concurrency_policy: string; active_deadline_seconds: number | null }>()
+      assert.equal(cron.concurrency_policy, 'Replace')
+      assert.equal(cron.active_deadline_seconds, 600)
+
+      const updateRes = await sevalla([
+        'apps', 'processes', 'update', cronId, '--app-id', createdAppId,
+        '--schedule', '0 4 * * *', '--concurrency-policy', 'Forbid', '--max-run-time', '0',
+      ])
+      assert.equal(updateRes.exitCode, 0, `apps processes update failed: ${updateRes.stderr}`)
+
+      const runsRes = await sevalla(['apps', 'processes', 'runs', '--app-id', createdAppId, '--process-id', cronId])
+      assert.equal(runsRes.exitCode, 0, `apps processes runs failed: ${runsRes.stderr}`)
+      assert.ok(Array.isArray(runsRes.json()), 'runs should be an array')
+    } finally {
+      let res = await sevalla(['apps', 'processes', 'delete', cronId, '--app-id', createdAppId, '--confirm'])
+      for (let attempt = 0; attempt < 10 && res.exitCode !== 0; attempt++) {
+        await cancelAppDeployments(createdAppId)
+        await new Promise((resolve) => setTimeout(resolve, 3000))
+        res = await sevalla(['apps', 'processes', 'delete', cronId, '--app-id', createdAppId, '--confirm'])
+      }
+    }
+  })
+
+  // --- Exec and terminal ---
+
+  it('should send an exec request the API accepts', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const listRes = await sevalla(['apps', 'processes', 'list', '--app-id', createdAppId])
+    const [web] = listRes.json<Process[]>()
+    assert.ok(web, 'the app should have a process')
+
+    // Nothing is running, so the API refuses on state, but never on request shape
+    const res = await sevalla(['apps', 'processes', 'exec', web.id, '--app-id', createdAppId, '--timeout', '5', 'ls', '/'])
+    if (res.exitCode === 0 || !res.stderr) {
+      assert.equal(typeof res.json<{ exit_code: number }>().exit_code, 'number')
+    } else {
+      assert.ok(refusedOnStateOnly(res), `apps processes exec failed on request shape, auth or crash: ${res.stderr}`)
+    }
+  })
+
+  it('should refuse to open a terminal without an interactive shell', async () => {
+    assert.ok(createdAppId, 'createdAppId must be set from before hook')
+
+    const res = await sevalla(['apps', 'processes', 'terminal', '00000000-0000-0000-0000-000000000000', '--app-id', createdAppId])
+    assert.equal(res.exitCode, 1)
+    assert.match(res.stderr, /interactive shell/)
+  })
 })
