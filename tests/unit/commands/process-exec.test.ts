@@ -46,6 +46,18 @@ describe('Process exec and terminal commands', () => {
     assert.equal(fetchMock.mock.callCount(), 0);
   });
 
+  for (const timeout of ['30s', '2.5', '0', '61']) {
+    it(`should send no request for --timeout ${timeout}`, async () => {
+      await assert.rejects(() =>
+        processesExecCommand.parseAsync(
+          ['p1', '--app-id', 'a1', '--timeout', timeout, '--json', 'ls'],
+          { from: 'user' },
+        ),
+      );
+      assert.equal(fetchMock.mock.callCount(), 0);
+    });
+  }
+
   it('should refuse to open a terminal without an interactive shell', () => {
     // node --test runs without a TTY
     assert.throws(() => processesTerminalCommand.parse(['p1', '--app-id', 'a1'], { from: 'user' }));

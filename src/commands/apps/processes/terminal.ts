@@ -37,7 +37,7 @@ export const processesTerminalCommand = new Command('terminal')
       if (!token) throw new SevallaCliError('Not logged in. Run "sevalla login" to authenticate.');
 
       const url = new URL(
-        `${getBaseUrl(opts['apiUrl'] as string | undefined)}/applications/${opts['appId']}/processes/${processId}/terminal`,
+        `${getBaseUrl(opts['apiUrl'] as string | undefined).replace(/\/$/, '')}/applications/${opts['appId']}/processes/${processId}/terminal`,
       );
       url.protocol = url.protocol === 'http:' ? 'ws:' : 'wss:';
       url.searchParams.set('shell', opts['shell'] as string);

@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { createClient } from '../../../client/api-client.ts';
+import { SevallaCliError } from '../../../errors/cli-error.ts';
 import { handleError } from '../../../errors/handler.ts';
 import { jsonOption, resolveJsonMode } from '../../../helpers/flags.ts';
 import { validateId } from '../../../helpers/validate.ts';
@@ -28,6 +29,9 @@ export const processesExecCommand = new Command('exec')
       validateId(opts['appId'] as string, 'app-id');
       validateId(processId, 'process-id');
       const timeout = opts['timeout'] === undefined ? undefined : Number(opts['timeout']);
+      if (timeout !== undefined && !(Number.isInteger(timeout) && timeout >= 1 && timeout <= 60)) {
+        throw new SevallaCliError('--timeout must be a whole number of seconds, 1-60.');
+      }
       if (!json) startSpinner('Running...');
       const result = await client.request<ExecResult>({
         method: 'POST',
