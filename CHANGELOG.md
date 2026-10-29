@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/sevalla/cli/compare/v2.0.0...v2.1.0) (2026-10-29)
+
+
+### Features
+
+* cover the latest v3 API and make Ingot the default build type ([#15](https://github.com/sevalla/cli/issues/15)) ([d49a757](https://github.com/sevalla/cli/commit/d49a75797b0d19c228d2b0d5ff9a5327b8e1d2f0))
+
 # [2.0.0](https://github.com/sevalla/cli/compare/v1.11.0...v2.0.0) (2026-10-28)
 
 
