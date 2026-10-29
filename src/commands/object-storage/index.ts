@@ -5,6 +5,7 @@ import { objectStorageCreateCommand } from './create.ts';
 import { objectStorageUpdateCommand } from './update.ts';
 import { objectStorageDeleteCommand } from './delete.ts';
 import { objectStorageRotateCredentialsCommand } from './rotate-credentials.ts';
+import { objectStoragePurgeCacheCommand } from './purge-cache.ts';
 import { makeCdnDomainCommands } from './cdn-domain/index.ts';
 import { makeCorsPoliciesCommands } from './cors-policies/index.ts';
 import { makeObjectsCommands } from './objects/index.ts';
@@ -17,6 +18,7 @@ export function makeObjectStorageCommand(): Command {
   cmd.addCommand(objectStorageUpdateCommand);
   cmd.addCommand(objectStorageDeleteCommand);
   cmd.addCommand(objectStorageRotateCredentialsCommand);
+  cmd.addCommand(objectStoragePurgeCacheCommand);
   cmd.addCommand(makeCdnDomainCommands());
   cmd.addCommand(makeCorsPoliciesCommands());
   cmd.addCommand(makeObjectsCommands());

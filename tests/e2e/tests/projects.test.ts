@@ -69,6 +69,13 @@ describe('projects', () => {
     secondProjectId = res.json<Project>().id
   })
 
+  it('should find the project with list --search', async () => {
+    assert.ok(createdProjectId, 'createdProjectId must be set')
+    const res = await sevalla(['projects', 'list', '--search', `e2e-project-${ts}`])
+    assert.equal(res.exitCode, 0, `projects list --search failed: ${res.stderr}`)
+    assert.ok(res.json<Project[]>().some((p) => p.id === createdProjectId), 'project should be found')
+  })
+
   // ---------------------------------------------------------------------------
   // Read
   // ---------------------------------------------------------------------------

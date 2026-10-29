@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { resourcesClustersCommand } from './clusters.ts';
 import { resourcesDbTypesCommand } from './db-types.ts';
+import { resourcesDbVersionsCommand } from './db-versions.ts';
 import { resourcesDiskTypesCommand } from './disk-types.ts';
 import { resourcesProcessTypesCommand } from './process-types.ts';
 import { resourcesRbacPermissionsCommand } from './rbac-permissions.ts';
@@ -10,6 +11,7 @@ export function makeResourcesCommand(): Command {
   const cmd = new Command('resources').description('List available resources');
   cmd.addCommand(resourcesClustersCommand);
   cmd.addCommand(resourcesDbTypesCommand);
+  cmd.addCommand(resourcesDbVersionsCommand);
   cmd.addCommand(resourcesDiskTypesCommand);
   cmd.addCommand(resourcesProcessTypesCommand);
   cmd.addCommand(resourcesRbacPermissionsCommand);

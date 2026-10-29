@@ -6,7 +6,7 @@ import { printJson, printSuccess } from '../../../output/formatter.ts';
 import { startSpinner, stopSpinner } from '../../../output/spinner.ts';
 
 export const processesTriggerCommand = new Command('trigger')
-  .description('Trigger a cron job process')
+  .description('Run a cron process now; the run shows in `apps processes runs`')
   .requiredOption('--app-id <id>', 'Application ID')
   .argument('<process-id>', 'Process ID')
   .addOption(jsonOption())

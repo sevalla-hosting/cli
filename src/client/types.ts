@@ -32,4 +32,5 @@ export interface RequestOptions {
   path: string;
   query?: QueryParams;
   body?: unknown;
+  timeoutMs?: number;
 }

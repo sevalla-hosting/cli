@@ -7,6 +7,7 @@ import { apiKeysDeleteCommand } from './delete.ts';
 import { apiKeysToggleCommand } from './toggle.ts';
 import { apiKeysRotateCommand } from './rotate.ts';
 import { apiKeysValidateCommand } from './validate.ts';
+import { apiKeysCurrentCommand } from './current.ts';
 
 export function makeApiKeysCommand(): Command {
   const cmd = new Command('api-keys').description('Manage API keys');
@@ -18,5 +19,6 @@ export function makeApiKeysCommand(): Command {
   cmd.addCommand(apiKeysToggleCommand);
   cmd.addCommand(apiKeysRotateCommand);
   cmd.addCommand(apiKeysValidateCommand);
+  cmd.addCommand(apiKeysCurrentCommand);
   return cmd;
 }

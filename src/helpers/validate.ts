@@ -1,3 +1,5 @@
+import { SevallaCliError } from '../errors/cli-error.ts';
+
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -38,4 +40,11 @@ export function validatePath(path: string): string {
     throw new ValidationError(`Path contains traversal sequence: ${path}`);
   }
   return path;
+}
+
+export function parseBool(value: unknown, flag: string): boolean {
+  if (value !== 'true' && value !== 'false') {
+    throw new SevallaCliError(`${flag} must be true or false.`);
+  }
+  return value === 'true';
 }

@@ -243,6 +243,40 @@ describe(RESOURCE, () => {
   })
 
   // ---------------------------------------------------------------------------
+  // Logs filters and response time percentile
+  // ---------------------------------------------------------------------------
+  it('should get access logs with filters and a response time percentile', async () => {
+    assert.ok(createdId, 'No static site was created')
+    const logsRes = await sevalla([RESOURCE, 'logs', 'access', createdId, '--search', 'GET', '--order', 'desc', '--limit', '5'])
+    assert.equal(logsRes.exitCode, 0, `logs access with filters failed: ${logsRes.stderr}`)
+    const metricsRes = await sevalla([RESOURCE, 'metrics', 'response-time', createdId, '--percent', '95'])
+    assert.equal(metricsRes.exitCode, 0, `metrics response-time --percent failed: ${metricsRes.stderr}`)
+  })
+
+  // ---------------------------------------------------------------------------
+  // Repository
+  // ---------------------------------------------------------------------------
+  it('should browse the static site repository', async () => {
+    assert.ok(createdId, 'No static site was created')
+    const getRes = await sevalla([RESOURCE, 'repository', 'get', createdId])
+    assert.equal(getRes.exitCode, 0, `repository get failed: ${getRes.stderr}`)
+    assert.equal(getRes.json<{ source: string }>().source, 'publicGit')
+
+    const treeRes = await sevalla([RESOURCE, 'repository', 'tree', createdId, '--ref', 'main', '--recursive'])
+    assert.equal(treeRes.exitCode, 0, `repository tree failed: ${treeRes.stderr}`)
+    const file = treeRes.json<{ entries: { path: string; type: string }[] }>().entries.find((e) => e.type === 'file')
+    assert.ok(file, 'repository should contain a file')
+
+    const fileRes = await sevalla([RESOURCE, 'repository', 'contents', createdId, '--path', file.path, '--ref', 'main'])
+    assert.equal(fileRes.exitCode, 0, `repository contents failed: ${fileRes.stderr}`)
+    assert.equal(fileRes.json<{ path: string }>().path, file.path)
+
+    // Provider code search can be unavailable for public repositories
+    const searchRes = await sevalla([RESOURCE, 'repository', 'search', createdId, '--query', 'main'])
+    assert.ok(refusedOnStateOnly(searchRes), `repository search failed on request shape, auth or crash: ${searchRes.stderr}`)
+  })
+
+  // ---------------------------------------------------------------------------
   // Delete
   // ---------------------------------------------------------------------------
   it('should delete a static site with --confirm', async () => {

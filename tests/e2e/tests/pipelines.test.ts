@@ -67,6 +67,15 @@ describe(RESOURCE, () => {
     createdId = created.id
   })
 
+  it('should find the pipeline with list --search and --type', async () => {
+    assert.ok(createdId, 'No pipeline was created')
+    const getRes = await sevalla([RESOURCE, 'get', createdId])
+    const name = getRes.json<{ display_name?: string; name: string }>()
+    const res = await sevalla([RESOURCE, 'list', '--search', name.display_name ?? name.name, '--type', 'trunk', '--project', projectId])
+    assert.equal(res.exitCode, 0, `list --search failed: ${res.stderr}`)
+    assert.ok(res.json<{ id: string }[]>().some((p) => p.id === createdId), 'pipeline should be found')
+  })
+
   // ---------------------------------------------------------------------------
   // Read
   // ---------------------------------------------------------------------------
@@ -199,7 +208,7 @@ describe(RESOURCE, () => {
 
     const previewApp = {
       cluster_id: clusterId,
-      build_type: 'nixpacks',
+      build_type: 'ingot',
       processes: [
         {
           display_name: 'web',

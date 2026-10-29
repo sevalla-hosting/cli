@@ -19,6 +19,12 @@ import { makeIpRestrictionCommands } from './ip-restriction/index.ts';
 import { makeTcpProxiesCommands } from './tcp-proxies/index.ts';
 import { makePrivatePortsCommands } from './private-ports/index.ts';
 import { makeAppMetricsCommands } from './metrics/index.ts';
+import { appsEdgeCacheToggleCommand } from './edge-cache-toggle.ts';
+import { appsEgressIpsCommand } from './egress-ips.ts';
+import { makeMaintenanceModeCommands } from './maintenance-mode/index.ts';
+import { makeInternalConnectionsCommands } from './internal-connections/index.ts';
+import { makeDockerfilesCommands } from './dockerfiles/index.ts';
+import { makeRepositoryCommands } from '../../helpers/repository-commands.ts';
 
 export function makeAppsCommand(): Command {
   const cmd = new Command('apps').description('Manage applications');
@@ -32,6 +38,8 @@ export function makeAppsCommand(): Command {
   cmd.addCommand(appsCloneCommand);
   cmd.addCommand(appsPurgeCacheCommand);
   cmd.addCommand(appsCdnToggleCommand);
+  cmd.addCommand(appsEdgeCacheToggleCommand);
+  cmd.addCommand(appsEgressIpsCommand);
   cmd.addCommand(makeDeploymentsCommands());
   cmd.addCommand(makeProcessesCommands());
   cmd.addCommand(makeEnvVarsCommands());
@@ -42,5 +50,11 @@ export function makeAppsCommand(): Command {
   cmd.addCommand(makeTcpProxiesCommands());
   cmd.addCommand(makePrivatePortsCommands());
   cmd.addCommand(makeAppMetricsCommands());
+  cmd.addCommand(makeMaintenanceModeCommands());
+  cmd.addCommand(makeInternalConnectionsCommands());
+  cmd.addCommand(makeDockerfilesCommands());
+  cmd.addCommand(
+    makeRepositoryCommands('/applications', { name: 'app-id', description: 'Application ID' }),
+  );
   return cmd;
 }
